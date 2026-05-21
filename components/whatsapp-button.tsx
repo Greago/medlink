@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { MessageCircle, X } from "lucide-react"
+import { MessageCircle } from "lucide-react"
 
 export function WhatsAppButton() {
   const [isHovered, setIsHovered] = useState(false)
-  const phoneNumber = "1234567890" // Replace with actual number
+  const phoneNumber = "254743325746" // Replace with actual number (digits only)
   const message = "Hello! I'm interested in your medical equipment."
   
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
@@ -14,7 +14,7 @@ export function WhatsAppButton() {
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
       {/* Tooltip */}
       <div
-        className={`bg-white rounded-xl shadow-xl border border-gray-100 p-4 max-w-[240px] transition-all duration-300 ${
+        className={`relative bg-white rounded-xl shadow-xl border border-gray-100 p-4 max-w-[240px] transition-all duration-300 ${
           isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
         }`}
       >

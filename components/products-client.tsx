@@ -102,7 +102,7 @@ export function ProductsClient() {
     const message = encodeURIComponent(
       `Hi, I'm interested in ordering:\n\n*${product.name}*\nPrice: $${product.price.toLocaleString()}\nCategory: ${product.category}\n\nProduct Link: ${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.id}\n\nPlease provide more information.`
     )
-    return `https://wa.me/1234567890?text=${message}`
+    return `https://wa.me/+254743325746?text=${message}`
   }
 
   return (
