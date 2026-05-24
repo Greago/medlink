@@ -79,9 +79,9 @@ export function CTA() {
             
             <div className="space-y-6">
               {[
-                { icon: Phone, label: "Sales Hotline", value: "+1 (555) 123-4567", sublabel: "24/7 Available" },
-                { icon: Mail, label: "Email Us", value: "sales@medlink.com", sublabel: "Response within 2h" },
-                { icon: MapPin, label: "Headquarters", value: "123 Medical Ave, NY 10001", sublabel: "Visit by appointment" },
+                { icon: Phone, label: "Sales Hotline", value: "+254 743 325 746", sublabel: "24/7 Available" },
+                { icon: Mail, label: "Email Us", value: "info@medlink.com", sublabel: "Response within 2h" },
+                { icon: MapPin, label: "Headquarters", value: "Bee Center, Nairobi, Kenya", sublabel: "Visit by appointment" },
               ].map((contact, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.04] hover:bg-white/[0.05] transition-colors">
                   <div className="w-12 h-12 rounded-xl bg-[#0d9488]/20 flex items-center justify-center shrink-0">

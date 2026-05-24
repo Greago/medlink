@@ -75,14 +75,14 @@ export function CompanyProfile() {
                   />
                 </div>
                 <div className="bg-[#0c1f1d] rounded-2xl p-6 text-white">
-                  <div className="text-3xl font-bold text-[#2dd4bf] mb-1">10+</div>
+                  <div className="text-3xl font-bold text-[#2dd4bf] mb-1">3+</div>
                   <div className="text-sm text-[#8aa8a5]">Years of Excellence</div>
                 </div>
               </div>
               <div className="space-y-4 pt-8">
                 <div className="bg-[#0d9488] rounded-2xl p-6 text-white">
-                  <div className="text-3xl font-bold mb-1">150+</div>
-                  <div className="text-sm text-white/80">Countries Served</div>
+                  <div className="text-3xl font-bold mb-1">10+</div>
+                  <div className="text-sm text-white/80">Counties Served</div>
                 </div>
                 <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-[#e5e5e3] relative">
                   <Image

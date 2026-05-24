@@ -128,8 +128,8 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-[#6b8a87]">
-            2026 Medlink Expediate Ventures Limited. All rights reserved.
-          </p>
+  © {new Date().getFullYear()} Medlink Expediate Ventures Limited. All rights reserved.
+</p>
           <div className="flex items-center gap-6 text-sm text-[#6b8a87]">
             <Link href="/privacy" className="hover:text-[#2dd4bf] transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-[#2dd4bf] transition-colors">Terms</Link>
