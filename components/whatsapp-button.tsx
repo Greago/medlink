@@ -6,7 +6,20 @@ import { MessageCircle } from "lucide-react"
 export function WhatsAppButton() {
   const [isHovered, setIsHovered] = useState(false)
   const phoneNumber = "254743325746" // Replace with actual number (digits only)
-  const message = "Hello! I'm interested in your medical equipment."
+  const message =  `Hello 👋
+Welcome to Medlink Expedite.
+
+Thank you for reaching out to us. We specialize in the supply of quality medical equipment and healthcare solutions for hospitals, clinics, laboratories, and healthcare professionals.
+
+Kindly share your inquiry or quotation request, and our team will assist you promptly.
+
+To help us serve you better, please include:
+• Product or equipment name
+• Quantity required
+• Your location or facility name
+
+We appreciate your interest and look forward to serving you.
+`;
   
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
 
