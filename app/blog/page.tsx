@@ -36,7 +36,7 @@ const blogPosts = [
   },
   {
     id: 4,
-    title: "2024 Healthcare Industry Trends",
+    title: "2026 Healthcare Industry Trends",
     excerpt: "Explore the major trends shaping healthcare delivery and equipment requirements in the coming year.",
     author: "Dr. Felix",
     date: "Jan 1, 2024",
