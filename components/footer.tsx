@@ -36,13 +36,12 @@ export function Footer() {
               <Image
                 src="/logo.png"
                 alt="Medlink Logo"
-                width={48}
-                height={48}
+                width={150}
+                height={60}
                 className="rounded-xl"
               />
               <div>
-                <span className="font-bold text-xl block">Medlink Expediate</span>
-                <span className="text-xs text-[#8aa8a5]">Ventures Limited</span>
+               
               </div>
             </div>
             <p className="text-[#8aa8a5] text-sm leading-relaxed mb-6 max-w-sm">
@@ -112,7 +111,7 @@ export function Footer() {
             <ul className="space-y-4 text-sm">
               <li className="flex items-center gap-3 text-[#8aa8a5]">
                 <Phone size={16} className="text-[#2dd4bf] shrink-0" />
-                <span>+1 (555) 123-4567</span>
+                <span>+254 743 325 746</span>
               </li>
               <li className="flex items-center gap-3 text-[#8aa8a5]">
                 <Mail size={16} className="text-[#2dd4bf] shrink-0" />
@@ -120,7 +119,7 @@ export function Footer() {
               </li>
               <li className="flex items-start gap-3 text-[#8aa8a5]">
                 <MapPin size={16} className="text-[#2dd4bf] shrink-0 mt-0.5" />
-                <span>123 Medical Avenue,<br />New York, NY 10001</span>
+                <span>Bee Center,<br />Nairobi, Kenya</span>
               </li>
             </ul>
           </div>
