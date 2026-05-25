@@ -12,7 +12,6 @@ const MOCK_PRODUCTS = [
     id: "1",
     name: "Portable Ultrasound Machine",
     category: "Diagnostic",
-    price: 4500,
     image: "/portable-ultrasound-machine.jpg",
     description: "High-resolution portable ultrasound system for point-of-care diagnostics with wireless connectivity.",
     specs: ["15-inch HD display", "Battery: 4hrs", "Weight: 5.2kg"],
@@ -22,7 +21,6 @@ const MOCK_PRODUCTS = [
     id: "2",
     name: "ECG Monitor 12-Lead",
     category: "Monitoring",
-    price: 2200,
     image: "/ecg-monitor-12-lead.jpg",
     description: "Advanced 12-lead ECG monitoring system with wireless transmission and cloud connectivity.",
     specs: ["12-lead capability", "WiFi enabled", "Touch screen"],
@@ -32,7 +30,6 @@ const MOCK_PRODUCTS = [
     id: "3",
     name: "Electric Hospital Bed",
     category: "Hospital Furniture",
-    price: 3800,
     image: "/electric-patient-hospital-bed.jpg",
     description: "Premium electric hospital bed with multiple positioning options and integrated patient controls.",
     specs: ["4 motors", "450kg capacity", "Side rails included"],
@@ -42,7 +39,6 @@ const MOCK_PRODUCTS = [
     id: "4",
     name: "Medical Oxygen Concentrator",
     category: "Respiratory",
-    price: 1200,
     image: "/oxygen-concentrator-medical.jpg",
     description: "Portable oxygen concentrator delivering continuous flow for respiratory therapy patients.",
     specs: ["5L/min flow", "Low noise", "Portable design"],
@@ -52,7 +48,6 @@ const MOCK_PRODUCTS = [
     id: "5",
     name: "LED Surgical Light System",
     category: "Surgical",
-    price: 5500,
     image: "/portable-diagnostic-equipment.jpg",
     description: "Shadow-free LED surgical lights with adjustable intensity and color temperature.",
     specs: ["160,000 lux", "Color temp adjust", "Ceiling mount"],
@@ -62,7 +57,6 @@ const MOCK_PRODUCTS = [
     id: "6",
     name: "Digital X-Ray System",
     category: "Diagnostic",
-    price: 28000,
     image: "/hospital-medical-facility-equipment.jpg",
     description: "Complete digital radiography system with instant image processing and DICOM compatibility.",
     specs: ["Flat panel detector", "DICOM ready", "AI-assisted"],
@@ -76,7 +70,6 @@ export function ProductsClient() {
   const [searchQuery, setSearchQuery] = useState("")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState<string>("name")
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000])
   const [showFilters, setShowFilters] = useState(false)
   const [quickViewProduct, setQuickViewProduct] = useState<typeof MOCK_PRODUCTS[0] | null>(null)
 
@@ -89,18 +82,13 @@ export function ProductsClient() {
       const matchesSearch =
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1]
-      return matchesCategory && matchesSearch && matchesPrice
+      return matchesCategory && matchesSearch
     })
-    .sort((a, b) => {
-      if (sortBy === "price-low") return a.price - b.price
-      if (sortBy === "price-high") return b.price - a.price
-      return a.name.localeCompare(b.name)
-    })
+    .sort((a, b) => a.name.localeCompare(b.name))
 
   const generateWhatsAppLink = (product: typeof MOCK_PRODUCTS[0]) => {
     const message = encodeURIComponent(
-      `Hi, I'm interested in ordering:\n\n*${product.name}*\nPrice: $${product.price.toLocaleString()}\nCategory: ${product.category}\n\nProduct Link: ${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.id}\n\nPlease provide more information.`
+      `Hi, I'm interested in ordering:\n\n*${product.name}*\nCategory: ${product.category}\n\nProduct Link: ${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.id}\n\nPlease provide more information.`
     )
     return `https://wa.me/+254743325746?text=${message}`
   }
@@ -171,8 +159,6 @@ export function ProductsClient() {
                     className="appearance-none pl-4 pr-10 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d9488] text-gray-700 font-medium cursor-pointer"
                   >
                     <option value="name">Sort: Name</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
                 </div>
@@ -208,26 +194,6 @@ export function ProductsClient() {
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="grid md:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">Price Range</label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="number"
-                        value={priceRange[0]}
-                        onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                        className="w-full px-3 py-2 bg-gray-50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0d9488]"
-                        placeholder="Min"
-                      />
-                      <span className="text-gray-400">-</span>
-                      <input
-                        type="number"
-                        value={priceRange[1]}
-                        onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                        className="w-full px-3 py-2 bg-gray-50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0d9488]"
-                        placeholder="Max"
-                      />
-                    </div>
-                  </div>
-                  <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">Availability</label>
                     <div className="flex gap-2">
                       <button className="px-4 py-2 bg-[#0d9488] text-white text-sm rounded-lg font-medium">All</button>
@@ -239,7 +205,6 @@ export function ProductsClient() {
                       onClick={() => {
                         setSelectedCategory("All")
                         setSearchQuery("")
-                        setPriceRange([0, 50000])
                         setSortBy("name")
                       }}
                       className="px-4 py-2 text-sm text-[#0d9488] font-medium hover:bg-[#0d9488]/5 rounded-lg transition-colors"
@@ -279,7 +244,6 @@ export function ProductsClient() {
                 onClick={() => {
                   setSelectedCategory("All")
                   setSearchQuery("")
-                  setPriceRange([0, 50000])
                 }}
                 className="px-6 py-2 bg-[#0d9488] text-white rounded-lg font-medium hover:bg-[#0f766e] transition-colors"
               >
@@ -352,12 +316,8 @@ export function ProductsClient() {
                       </div>
                     )}
 
-                    {/* Price & Actions */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-wide">Price</p>
-                        <p className="text-2xl font-bold text-[#0d9488]">${product.price.toLocaleString()}</p>
-                      </div>
+                    {/* Actions */}
+                    <div className="flex items-center justify-end pt-4 border-t border-gray-100">
                       <Link
                         href={`/products/${product.id}`}
                         className="px-5 py-2.5 bg-[#0d9488] text-white rounded-xl font-semibold text-sm hover:bg-[#0f766e] transition-colors"
@@ -399,7 +359,7 @@ export function ProductsClient() {
                           <span className="text-xs font-semibold text-[#0d9488] uppercase tracking-wide">{product.category}</span>
                           <h3 className="text-xl font-bold text-gray-900 group-hover:text-[#0d9488] transition-colors">{product.name}</h3>
                         </div>
-                        <p className="text-2xl font-bold text-[#0d9488]">${product.price.toLocaleString()}</p>
+
                       </div>
                       <p className="text-gray-500 mb-4">{product.description}</p>
                       {product.specs && product.specs.length > 0 && (
@@ -489,10 +449,7 @@ export function ProductsClient() {
                   </div>
                 )}
 
-                <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                  <p className="text-sm text-gray-500 mb-1">Price</p>
-                  <p className="text-3xl font-bold text-[#0d9488]">${quickViewProduct.price.toLocaleString()}</p>
-                </div>
+
 
                 <div className="mt-auto space-y-3">
                   <a

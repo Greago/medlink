@@ -9,7 +9,6 @@ const featuredProducts = [
     id: 1,
     name: "Advanced Ultrasound System",
     category: "Diagnostic Equipment",
-    price: "Ksh 900,500",
     image: "/portable-ultrasound-machine.jpg",
     tag: "Best Seller",
   },
@@ -17,7 +16,6 @@ const featuredProducts = [
     id: 2,
     name: "12-Lead ECG Monitor",
     category: "Patient Monitoring",
-    price: "ksh 231,200",
     image: "/ecg-monitor-12-lead.jpg",
     tag: "New",
   },
@@ -25,7 +23,6 @@ const featuredProducts = [
     id: 3,
     name: "Electric Hospital Bed",
     category: "Furniture",
-    price: "Ksh300,800",
     image: "/electric-patient-hospital-bed.jpg",
     tag: "Popular",
   },
@@ -33,7 +30,6 @@ const featuredProducts = [
     id: 4,
     name: "Oxygen Concentrator",
     category: "Respiratory Care",
-    price: "Ksh234,100",
     image: "/oxygen-concentrator-medical.jpg",
     tag: "In Stock",
   },
@@ -122,10 +118,7 @@ export function Products() {
                 <h3 className="font-bold text-[#1a1a1a] text-lg mb-3 group-hover:text-[#0c7f73] transition-colors line-clamp-1">
                   {product.name}
                 </h3>
-                <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold text-[#1a1a1a]">{product.price}</span>
-                  <span className="text-xs text-[#6b7280]">Starting from</span>
-                </div>
+
               </div>
             </Link>
           ))}

@@ -142,7 +142,7 @@ export default function ProductDetailPage() {
     const message = encodeURIComponent(
       `Hi, I would like to order:\n\n*Product:* ${product.name}\n*Quantity:* ${quantity}\n*Unit Price:* $${product.price.toLocaleString()}\n*Total:* $${(product.price * quantity).toLocaleString()}\n\n*Product Link:* ${productUrl}\n\nPlease confirm availability and proceed with my order.`
     )
-    return `https://wa.me/1234567890?text=${message}`
+    return `https://wa.me/+254743325746?text=${message}`
   }
 
   const handleShare = async () => {

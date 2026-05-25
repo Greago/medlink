@@ -33,7 +33,7 @@ const defaultPages = [
   {
     title: "Contact & Partnerships",
     content: "Ready to partner with Medlink Expediate? Our enterprise sales team offers volume discounts, flexible financing, and dedicated account management for hospitals and clinic networks. Reach out to explore how we can serve your facility.",
-    highlight: "info@medlink.com | +1 (555) 123-4567",
+    highlight: "info@medlink.com | +254 743 325 746",
   },
 ]
 
