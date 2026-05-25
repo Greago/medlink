@@ -166,7 +166,7 @@ export function CompanyProfile() {
                   className="rounded-lg"
                 />
                 <div>
-                  <h3 className="font-bold text-[#1a1a1a]">Medlink Expediate</h3>
+                  <h3 className="font-bold text-[#1a1a1a]">Medlink Expedite</h3>
                   <p className="text-xs text-[#6b7280]">Company Profile</p>
                 </div>
               </div>
