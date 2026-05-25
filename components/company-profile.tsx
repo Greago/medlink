@@ -6,7 +6,7 @@ import Image from "next/image"
 
 const defaultPages = [
   {
-    title: "About Medlink Expediate",
+    title: "About Medlink Expedite",
     content: "Medlink Expedite Ventures Limited is a global leader in medical equipment supply, dedicated to empowering healthcare facilities with cutting-edge devices and trusted solutions. Founded with a vision to bridge the gap between advanced medical technology and accessible healthcare delivery.",
     highlight: "Serving 150+ countries since 2015",
   },
@@ -22,7 +22,7 @@ const defaultPages = [
   },
   {
     title: "Our Certifications",
-    content: "Medlink Expediate holds ISO 13485 certification for medical device quality management. All products undergo rigorous quality assurance, and our supply chain maintains full FDA compliance. We partner only with globally recognized manufacturers.",
+    content: "Medlink Expedite holds ISO 13485 certification for medical device quality management. All products undergo rigorous quality assurance, and our supply chain maintains full FDA compliance. We partner only with globally recognized manufacturers.",
     highlight: "ISO 13485 | CE Marked | FDA Compliant",
   },
   {
@@ -32,7 +32,7 @@ const defaultPages = [
   },
   {
     title: "Contact & Partnerships",
-    content: "Ready to partner with Medlink Expediate? Our enterprise sales team offers volume discounts, flexible financing, and dedicated account management for hospitals and clinic networks. Reach out to explore how we can serve your facility.",
+    content: "Ready to partner with Medlink Expedite? Our enterprise sales team offers volume discounts, flexible financing, and dedicated account management for hospitals and clinic networks. Reach out to explore how we can serve your facility.",
     highlight: "info@medlink.com | +254 743 325 746",
   },
 ]
@@ -103,7 +103,7 @@ export function CompanyProfile() {
               </span>
               
               <h2 className="text-3xl md:text-5xl font-bold text-[#1a1a1a] mb-6 leading-tight">
-                Medlink Expediate
+                Medlink Expedite
                 <br />
                 <span className="text-[#0c7f73]">Ventures Limited</span>
               </h2>
