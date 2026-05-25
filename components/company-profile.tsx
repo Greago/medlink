@@ -7,7 +7,7 @@ import Image from "next/image"
 const defaultPages = [
   {
     title: "About Medlink Expediate",
-    content: "Medlink Expediate Ventures Limited is a global leader in medical equipment supply, dedicated to empowering healthcare facilities with cutting-edge devices and trusted solutions. Founded with a vision to bridge the gap between advanced medical technology and accessible healthcare delivery.",
+    content: "Medlink Expedite Ventures Limited is a global leader in medical equipment supply, dedicated to empowering healthcare facilities with cutting-edge devices and trusted solutions. Founded with a vision to bridge the gap between advanced medical technology and accessible healthcare delivery.",
     highlight: "Serving 150+ countries since 2015",
   },
   {
@@ -111,7 +111,7 @@ export function CompanyProfile() {
               <p className="text-lg text-[#6b7280] mb-8 leading-relaxed">
                 A global leader in medical equipment supply, we bridge the gap between 
                 advanced healthcare technology and accessible delivery. Trusted by leading 
-                hospitals and clinics across 150+ countries.
+                hospitals and clinics across 10+ counties.
               </p>
 
               {/* Feature icons */}
