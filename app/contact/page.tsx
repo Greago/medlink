@@ -86,10 +86,10 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Email Us</h3>
                 <p className="text-gray-600 text-sm mb-1">
-                  <a href="mailto:info@medlink.com" className="text-[#0d9488] font-semibold hover:underline">info@medlink.com</a>
+                  <a href="mailto:info@medlinkexpedite.co.ke" className="text-[#0d9488] font-semibold hover:underline">info@medlinkexpedite.co.ke</a>
                 </p>
                 <p className="text-gray-600 text-sm">
-                  <a href="mailto:sales@medlink.com" className="text-[#0d9488] font-semibold hover:underline">sales@medlink.com</a>
+                  <a href="mailto:sales@medlinkexpedite.co.ke" className="text-[#0d9488] font-semibold hover:underline">sales@medlinkexpedite.co.ke</a>
                 </p>
               </div>
             </div>

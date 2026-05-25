@@ -80,7 +80,7 @@ export function CTA() {
             <div className="space-y-6">
               {[
                 { icon: Phone, label: "Sales Hotline", value: "+254 743 325 746", sublabel: "24/7 Available" },
-                { icon: Mail, label: "Email Us", value: "info@medlink.com", sublabel: "Response within 2h" },
+                { icon: Mail, label: "Email Us", value: "info@medlinkexpedite.co.ke", sublabel: "Response within 2h" },
                 { icon: MapPin, label: "Headquarters", value: "Bee Center, Nairobi, Kenya", sublabel: "Visit by appointment" },
               ].map((contact, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.04] hover:bg-white/[0.05] transition-colors">

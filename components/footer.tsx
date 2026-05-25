@@ -115,7 +115,7 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3 text-[#8aa8a5]">
                 <Mail size={16} className="text-[#2dd4bf] shrink-0" />
-                <span>info@medlink.com</span>
+                <span>info@medlinkexpedite.co.ke</span>
               </li>
               <li className="flex items-start gap-3 text-[#8aa8a5]">
                 <MapPin size={16} className="text-[#2dd4bf] shrink-0 mt-0.5" />
