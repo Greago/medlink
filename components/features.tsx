@@ -31,7 +31,7 @@ const features = [
   {
     icon: Award,
     title: "Industry Leader",
-    description: "Trusted by 500+ hospitals and clinics across 150 countries. 99.8% customer satisfaction rate.",
+    description: "Trusted by 500+ hospitals and clinics across 10+ counties. 99.8% customer satisfaction rate.",
     color: "from-rose-500 to-pink-600",
   },
   {
