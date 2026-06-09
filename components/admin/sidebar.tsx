@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { LayoutDashboard, Package, FileText, MessageSquare, LogOut, BookOpen, Settings } from "lucide-react"
@@ -27,13 +28,15 @@ export function AdminSidebar() {
   return (
     <aside className="w-64 bg-white border-r border-[#d1e8e5] flex flex-col shrink-0">
       <div className="p-6 border-b border-[#d1e8e5]">
-        <Link href="/admin/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#0d9488] rounded-xl flex items-center justify-center text-white font-bold">
-            ML
-          </div>
-          <div>
-            <p className="font-bold text-[#0f2b2e]">Medlink</p>
-            <p className="text-xs text-[#5f7a7d]">Admin Panel</p>
+        <Link href="/admin/dashboard" className="flex justify-center">
+          <div className="w-full max-w-[140px]">
+            <Image
+              src="/colorlogo.png"
+              alt="Medlink Logo"
+              width={140}
+              height={140}
+              className="w-full h-auto object-contain"
+            />
           </div>
         </Link>
       </div>

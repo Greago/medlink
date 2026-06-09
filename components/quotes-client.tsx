@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useSearchParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import { useStore, type Quote, type QuoteItem } from "@/lib/store"
@@ -9,9 +10,37 @@ import { Plus, Download, Trash2, FileText, X, Send, Check, Clock, XCircle, Eye }
 function generateQuoteNumber() {
   const date = new Date()
   const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0")
-  return `QT-${year}${month}-${random}`
+  const sequence = Math.floor(Math.random() * 10000).toString().padStart(4, "0")
+  return `MEV/QT/${year}/${sequence}`
+}
+
+function formatKES(value: number) {
+  return value.toLocaleString("en-KE", {
+    style: "currency",
+    currency: "KES",
+    minimumFractionDigits: 2,
+  })
+}
+
+async function loadImageAsDataUrl(url: string) {
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result)
+        } else {
+          reject(new Error("Unable to convert image to data URL"))
+        }
+      }
+      reader.onerror = () => reject(reader.error)
+      reader.readAsDataURL(blob)
+    })
+  } catch {
+    return null
+  }
 }
 
 // PDF Generation function
@@ -21,32 +50,71 @@ async function generatePDF(quote: Quote) {
   
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
   const margin = 20
   let y = 20
+  const headerRgb = [0, 77, 62] as const
+  const accentRgb = [14, 110, 92] as const
+  const bodyRgb = [40, 40, 40] as const
+
+  const addPageIfNeeded = (spaceNeeded: number) => {
+    if (y + spaceNeeded > pageHeight - margin) {
+      doc.addPage()
+      y = margin
+      return true
+    }
+    return false
+  }
+
+  const addTableHeader = () => {
+    doc.setFillColor(...headerRgb)
+    doc.rect(margin, y, pageWidth - margin * 2, 10, "F")
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(9)
+    doc.setFont("helvetica", "bold")
+    doc.text("ITEM", margin + 3, y + 7)
+    doc.text("QTY", 110, y + 7)
+    doc.text("UNIT PRICE", 130, y + 7)
+    doc.text("TOTAL", pageWidth - margin - 3, y + 7, { align: "right" })
+  }
 
   // Header
-  doc.setFillColor(13, 148, 136)
-  doc.rect(0, 0, pageWidth, 45, "F")
-  
+  doc.setFillColor(...headerRgb)
+  doc.rect(0, 0, pageWidth, 48, "F")
+
+  const logoDataUrl = await loadImageAsDataUrl("/teallogo.png")
+  if (logoDataUrl) {
+    doc.addImage(logoDataUrl, "PNG", margin, 12, 40, 22)
+  }
+
   doc.setTextColor(255, 255, 255)
-  doc.setFontSize(24)
+  doc.setFontSize(15)
   doc.setFont("helvetica", "bold")
-  doc.text("MEDLINK EXPEDIATE", margin, 25)
-  doc.setFontSize(10)
+  const headerX = margin + 58
+  let headerY = 18
+  doc.text("MEDLINK EXPEDITE VENTURES LIMITED", headerX, headerY)
+
+  doc.setFontSize(9)
   doc.setFont("helvetica", "normal")
-  doc.text("VENTURES LIMITED", margin, 32)
-  doc.text("Premium Medical Equipment & Supplies", margin, 38)
+  headerY += 8
+  doc.text("Email: info@medlinkexpedite.co.ke", headerX, headerY)
+  headerY += 6
+  doc.text("Tel: +254 743 325 746", headerX, headerY)
+  headerY += 6
+  doc.text("Nairobi, Kenya", headerX, headerY)
+  headerY += 6
+  doc.text("Reliable Medical Equipment and Supplies", headerX, headerY)
 
   // Quote title
   y = 60
-  doc.setTextColor(13, 148, 136)
+  doc.setTextColor(...accentRgb)
   doc.setFontSize(28)
   doc.setFont("helvetica", "bold")
   doc.text("QUOTATION", pageWidth - margin, y, { align: "right" })
   
   // Quote details
   y = 75
-  doc.setTextColor(100, 100, 100)
+  doc.setTextColor(...bodyRgb)
   doc.setFontSize(10)
   doc.setFont("helvetica", "normal")
   doc.text(`Quote #: ${quote.quoteNumber}`, pageWidth - margin, y, { align: "right" })
@@ -55,10 +123,11 @@ async function generatePDF(quote: Quote) {
 
   // Client info
   y = 75
-  doc.setTextColor(50, 50, 50)
+  doc.setTextColor(...accentRgb)
   doc.setFontSize(11)
   doc.setFont("helvetica", "bold")
   doc.text("BILL TO:", margin, y)
+  doc.setTextColor(...bodyRgb)
   doc.setFont("helvetica", "normal")
   doc.setFontSize(10)
   doc.text(quote.clientName, margin, y + 8)
@@ -72,25 +141,17 @@ async function generatePDF(quote: Quote) {
 
   // Table header
   y = 120
-  doc.setFillColor(245, 245, 245)
-  doc.rect(margin, y, pageWidth - margin * 2, 10, "F")
-  doc.setTextColor(50, 50, 50)
-  doc.setFontSize(9)
-  doc.setFont("helvetica", "bold")
-  doc.text("ITEM", margin + 3, y + 7)
-  doc.text("QTY", 110, y + 7)
-  doc.text("UNIT PRICE", 130, y + 7)
-  doc.text("TOTAL", pageWidth - margin - 3, y + 7, { align: "right" })
+  addTableHeader()
 
   // Table rows
   y += 15
   doc.setFont("helvetica", "normal")
   quote.items.forEach((item, index) => {
-    if (y > 250) {
-      doc.addPage()
-      y = 20
+    if (addPageIfNeeded(40)) {
+      addTableHeader()
+      y += 15
     }
-    
+
     doc.setFillColor(index % 2 === 0 ? 255 : 250, index % 2 === 0 ? 255 : 250, index % 2 === 0 ? 255 : 250)
     doc.rect(margin, y - 5, pageWidth - margin * 2, 10, "F")
     
@@ -98,45 +159,108 @@ async function generatePDF(quote: Quote) {
     const productName = doc.splitTextToSize(item.productName, 70)
     doc.text(productName[0], margin + 3, y + 2)
     doc.text(item.quantity.toString(), 110, y + 2)
-    doc.text(`$${item.unitPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 130, y + 2)
-    doc.text(`$${item.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, pageWidth - margin - 3, y + 2, { align: "right" })
+    doc.text(formatKES(item.unitPrice), 130, y + 2)
+    doc.text(formatKES(item.total), pageWidth - margin - 3, y + 2, { align: "right" })
     y += 12
   })
 
   // Totals
+  if (addPageIfNeeded(80)) {
+    // leave enough room for totals and summary
+  }
+
   y += 10
-  doc.setDrawColor(200, 200, 200)
+  doc.setDrawColor(...accentRgb)
   doc.line(120, y, pageWidth - margin, y)
   y += 8
   
+  doc.setTextColor(...bodyRgb)
   doc.setFont("helvetica", "normal")
   doc.text("Subtotal:", 130, y)
-  doc.text(`$${quote.subtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, pageWidth - margin - 3, y, { align: "right" })
+  doc.text(formatKES(quote.subtotal), pageWidth - margin - 3, y, { align: "right" })
   
   y += 8
   doc.text(`Tax (${quote.taxRate}%):`, 130, y)
-  doc.text(`$${quote.taxAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, pageWidth - margin - 3, y, { align: "right" })
+  doc.text(formatKES(quote.taxAmount), pageWidth - margin - 3, y, { align: "right" })
   
   y += 10
-  doc.setFillColor(13, 148, 136)
+  doc.setFillColor(...headerRgb)
   doc.rect(120, y - 5, pageWidth - margin - 120, 12, "F")
   doc.setTextColor(255, 255, 255)
   doc.setFont("helvetica", "bold")
   doc.setFontSize(11)
   doc.text("TOTAL:", 130, y + 3)
-  doc.text(`$${quote.totalPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, pageWidth - margin - 3, y + 3, { align: "right" })
+  doc.text(formatKES(quote.totalPrice), pageWidth - margin - 3, y + 3, { align: "right" })
 
-  // Payment terms and notes
+  // Terms and conditions and notes
+  const terms = [
+    "1. This quotation is valid for thirty (30) days from the date of issue unless otherwise stated.",
+    "2. Prices quoted are in Kenya Shillings (KSh) and are inclusive of applicable VAT.",
+    "3. Delivery timelines shall be communicated upon confirmation of the order.",
+  ]
+  const estimatedTermsHeight = terms.reduce((height, term) => {
+    const termLines = doc.splitTextToSize(term, pageWidth - margin * 2)
+    return height + termLines.length * 6 + 10
+  }, 0)
+
+  if (addPageIfNeeded(estimatedTermsHeight + 80)) {
+    // start terms on a fresh page if needed
+  }
+
   y += 25
-  doc.setTextColor(50, 50, 50)
+  doc.setTextColor(...accentRgb)
   doc.setFontSize(10)
   doc.setFont("helvetica", "bold")
-  doc.text("PAYMENT TERMS:", margin, y)
+  doc.text("TERMS AND CONDITIONS", margin, y)
+  y += 6
+  doc.setTextColor(...bodyRgb)
+  doc.setFontSize(9)
   doc.setFont("helvetica", "normal")
-  doc.text(quote.paymentTerms, margin, y + 6)
+
+  const lineSpacing = 4
+  terms.forEach(term => {
+    const termLines = doc.splitTextToSize(term, pageWidth - margin * 2)
+    y += 2
+    doc.text(termLines, margin, y)
+    y += termLines.length * lineSpacing
+  })
+
+  y += 10
+  doc.setTextColor(...accentRgb)
+  doc.setFontSize(10)
+  doc.setFont("helvetica", "bold")
+  doc.text("PAYMENT DETAILS", margin, y)
+  y += 6
+  doc.setTextColor(...bodyRgb)
+  doc.setFontSize(9)
+  doc.setFont("helvetica", "normal")
+  doc.text("Paybill Number: 400200", margin, y)
+  y += 6
+  doc.text("Account Number: 01102787392001", margin, y)
+  y += 8
+  doc.setFont("helvetica", "bold")
+  doc.text("Bank Transfer Details", margin, y)
+  y += 6
+  doc.setFont("helvetica", "normal")
+  doc.text("Account Name: Medlink Expedite Ventures Ltd", margin, y)
+  y += 6
+  doc.text("Account Number: 01102787392001", margin, y)
+  y += 6
+  doc.text("Bank: Co-operative Bank of Kenya", margin, y)
+  y += 8
+  doc.setFont("helvetica", "italic")
+  doc.text(
+    "Kindly use the quotation number as the payment reference and share proof of payment for processing.",
+    margin,
+    y,
+    { maxWidth: pageWidth - margin * 2 }
+  )
 
   if (quote.notes) {
-    y += 20
+    if (addPageIfNeeded(40)) {
+      // start notes on a fresh page if there isn't enough space
+    }
+    y += 14
     doc.setFont("helvetica", "bold")
     doc.text("NOTES:", margin, y)
     doc.setFont("helvetica", "normal")
@@ -146,12 +270,12 @@ async function generatePDF(quote: Quote) {
 
   // Footer
   const footerY = doc.internal.pageSize.getHeight() - 20
-  doc.setDrawColor(13, 148, 136)
+  doc.setDrawColor(...accentRgb)
   doc.setLineWidth(0.5)
   doc.line(margin, footerY - 10, pageWidth - margin, footerY - 10)
   doc.setFontSize(8)
   doc.setTextColor(100, 100, 100)
-  doc.text("Medlink Expediate Ventures Limited | info@medlinkexpediate.com | +1 (555) 123-4567", pageWidth / 2, footerY, { align: "center" })
+  doc.text("Medlink Expediate Ventures Limited | info@medlinkexpedite.co.ke | +254 743 325 746", pageWidth / 2, footerY, { align: "center" })
 
   // Save
   doc.save(`Quote-${quote.quoteNumber}.pdf`)
@@ -305,8 +429,8 @@ export function QuotesClient() {
 
       {/* Quote Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8 animate-fade-in">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[calc(100vh-3rem)] overflow-hidden animate-fade-in">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
@@ -318,9 +442,11 @@ export function QuotesClient() {
               </button>
             </div>
 
-            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-              {/* Client Information */}
-              <div>
+            <div className="p-6 overflow-hidden">
+              <div className="grid gap-6 lg:grid-cols-[1.45fr_0.85fr]">
+                <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-18rem)] pr-4">
+                  {/* Client Information */}
+                  <div>
                 <h3 className="text-sm font-semibold text-[#0f2b2e] uppercase tracking-wide mb-4">Client Information</h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
@@ -390,7 +516,7 @@ export function QuotesClient() {
                     <option value="">Select a product...</option>
                     {products.map(product => (
                       <option key={product.id} value={product.id}>
-                        {product.name} - ${product.price.toLocaleString()}
+                        {product.name} - {formatKES(product.price)}
                       </option>
                     ))}
                   </select>
@@ -411,7 +537,7 @@ export function QuotesClient() {
 
                 {/* Items table */}
                 {quoteItems.length > 0 && (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="border border-gray-200 rounded-lg overflow-hidden max-h-[24rem] overflow-y-auto">
                     <table className="w-full">
                       <thead className="bg-gray-50">
                         <tr>
@@ -453,7 +579,7 @@ export function QuotesClient() {
                               />
                             </td>
                             <td className="px-4 py-3 text-right font-semibold text-[#0f2b2e]">
-                              ${item.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                              {formatKES(item.total)}
                             </td>
                             <td className="px-2 py-3">
                               <button
@@ -478,10 +604,12 @@ export function QuotesClient() {
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Totals and Settings */}
-              {quoteItems.length > 0 && (
-                <div className="grid sm:grid-cols-2 gap-6">
+              <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-18rem)] pl-4">
+                {/* Totals and Settings */}
+                {quoteItems.length > 0 && (
+                  <div className="grid sm:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -537,21 +665,22 @@ export function QuotesClient() {
                     <div className="space-y-3">
                       <div className="flex justify-between text-[#0f2b2e]">
                         <span>Subtotal</span>
-                        <span className="font-medium">${subtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                        <span className="font-medium">{formatKES(subtotal)}</span>
                       </div>
                       <div className="flex justify-between text-[#0f2b2e]">
                         <span>Tax ({taxRate}%)</span>
-                        <span className="font-medium">${taxAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                        <span className="font-medium">{formatKES(taxAmount)}</span>
                       </div>
                       <div className="border-t border-gray-300 pt-3 flex justify-between">
                         <span className="font-bold text-lg text-[#0f2b2e]">Total</span>
-                        <span className="font-bold text-xl text-[#0d9488]">${totalPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                        <span className="font-bold text-xl text-[#0d9589]">{formatKES(totalPrice)}</span>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
             </div>
+          </div>
 
             {/* Modal Footer */}
             <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
@@ -571,6 +700,7 @@ export function QuotesClient() {
             </div>
           </div>
         </div>
+      </div>
       )}
 
       {/* Quote Preview Modal */}
@@ -583,47 +713,122 @@ export function QuotesClient() {
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm text-gray-500">Quote #</p>
-                  <p className="font-bold text-[#0f2b2e]">{previewQuote.quoteNumber}</p>
+            <div className="p-6 space-y-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-4">
+                  <Image
+                    src="/logo.png"
+                    alt="Medlink Logo"
+                    width={72}
+                    height={72}
+                    className="rounded-2xl object-contain"
+                  />
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.3em] text-[#0d9589] font-semibold">Medlink Expedite</p>
+                    <p className="text-lg font-bold text-[#0f2b2e]">Quotation</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Status</p>
-                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${statusColors[previewQuote.status].bg} ${statusColors[previewQuote.status].text}`}>
-                    {previewQuote.status}
-                  </span>
+                <div className="text-sm text-gray-500 space-y-1 text-right">
+                  <p>info@medlinkexpedite.co.ke</p>
+                  <p>+254 743 325 746</p>
+                  <p>Nairobi, Kenya</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 py-4 border-y border-gray-200">
-                <div>
-                  <p className="text-sm text-gray-500">Client</p>
+
+              <div className="grid gap-4 md:grid-cols-[1fr_1fr]">
+                <div className="rounded-3xl border border-gray-200 bg-gray-50 p-5">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-2">Bill To</p>
                   <p className="font-semibold text-[#0f2b2e]">{previewQuote.clientName}</p>
                   <p className="text-sm text-gray-600">{previewQuote.clientCompany}</p>
+                  <p className="text-sm text-gray-600">{previewQuote.clientEmail}</p>
+                  <p className="text-sm text-gray-600">{previewQuote.clientPhone}</p>
+                  {previewQuote.clientAddress && (
+                    <p className="text-sm text-gray-600 mt-2">{previewQuote.clientAddress}</p>
+                  )}
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Valid Until</p>
-                  <p className="font-semibold text-[#0f2b2e]">{new Date(previewQuote.validUntil).toLocaleDateString()}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 mb-2">Items</p>
-                {previewQuote.items.map((item, i) => (
-                  <div key={i} className="flex justify-between py-2 border-b border-gray-100">
-                    <div>
-                      <p className="font-medium text-[#0f2b2e]">{item.productName}</p>
-                      <p className="text-sm text-gray-500">{item.quantity} x ${item.unitPrice.toFixed(2)}</p>
+                <div className="rounded-3xl border border-gray-200 bg-gray-50 p-5">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-2">Quote Details</p>
+                  <div className="text-sm text-gray-600 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Quote #</span>
+                      <span>{previewQuote.quoteNumber}</span>
                     </div>
-                    <p className="font-semibold text-[#0f2b2e]">${item.total.toFixed(2)}</p>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Date</span>
+                      <span>{new Date(previewQuote.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Valid Until</span>
+                      <span>{new Date(previewQuote.validUntil).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Status</span>
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusColors[previewQuote.status].bg} ${statusColors[previewQuote.status].text}`}>
+                        {previewQuote.status}
+                      </span>
+                    </div>
                   </div>
-                ))}
+                </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between"><span>Subtotal</span><span>${previewQuote.subtotal.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span>Tax ({previewQuote.taxRate}%)</span><span>${previewQuote.taxAmount.toFixed(2)}</span></div>
-                <div className="flex justify-between font-bold text-lg pt-2 border-t border-gray-300">
-                  <span>Total</span><span className="text-[#0d9488]">${previewQuote.totalPrice.toFixed(2)}</span>
+
+              <div className="overflow-hidden rounded-3xl border border-gray-200">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Item</th>
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 text-center">Qty</th>
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 text-right">Unit Price</th>
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {previewQuote.items.map((item, i) => (
+                      <tr key={i}>
+                        <td className="px-4 py-4">
+                          <p className="font-medium text-[#0f2b2e]">{item.productName || "Custom Item"}</p>
+                        </td>
+                        <td className="px-4 py-4 text-center text-gray-600">{item.quantity}</td>
+                        <td className="px-4 py-4 text-right text-gray-600">{formatKES(item.unitPrice)}</td>
+                        <td className="px-4 py-4 text-right font-semibold text-[#0f2b2e]">{formatKES(item.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-[1fr_280px]">
+                <div className="rounded-3xl border border-gray-200 bg-gray-50 p-5 text-sm text-gray-600">
+                  <p className="font-semibold text-gray-800 mb-2">Notes</p>
+                  <p>{previewQuote.notes || "No additional notes provided."}</p>
+                  <p className="mt-4 text-xs uppercase tracking-[0.2em] font-medium text-gray-500">Payment Terms</p>
+                  <p>{previewQuote.paymentTerms}</p>
+                  <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+                    <p className="text-sm font-semibold text-gray-800 mb-2">Payment Details</p>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <p className="mt-3 font-semibold text-gray-900">MPESA Details</p>
+                      <p><span className="font-semibold text-gray-900">Paybill Number:</span> 400200</p>
+                      <p><span className="font-semibold text-gray-900">Account Number:</span> 01102787392001</p>
+                      <p className="mt-3 font-semibold text-gray-900">Bank Transfer Details</p>
+                      <p>Account Name: Medlink Expedite Ventures Ltd</p>
+                      <p>Account Number: 01102787392001</p>
+                      <p>Bank: Co-operative Bank of Kenya</p>
+                      <p className="mt-3 text-xs text-gray-500">Use the quotation number as the payment reference and share proof of payment for processing.</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-3xl border border-gray-200 bg-[#081916]/5 p-5">
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>Subtotal</span>
+                    <span>{formatKES(previewQuote.subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>Tax ({previewQuote.taxRate}%)</span>
+                    <span>{formatKES(previewQuote.taxAmount)}</span>
+                  </div>
+                  <div className="border-t border-gray-200 pt-3 flex justify-between text-lg font-bold text-[#0f2b2e]">
+                    <span>Total</span>
+                    <span>{formatKES(previewQuote.totalPrice)}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -684,7 +889,7 @@ export function QuotesClient() {
                   <div className="flex items-center gap-4 sm:gap-6">
                     <div className="text-right">
                       <p className="text-xs text-gray-500">{quote.items.length} item{quote.items.length !== 1 ? "s" : ""}</p>
-                      <p className="text-xl font-bold text-[#0d9488]">${quote.totalPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+                      <p className="text-xl font-bold text-[#0d9589]">{formatKES(quote.totalPrice)}</p>
                     </div>
                     <div className="flex gap-2">
                       <button
