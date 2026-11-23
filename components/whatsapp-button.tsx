@@ -2,19 +2,23 @@
 
 import { useState } from "react"
 import { MessageCircle } from "lucide-react"
+import { getModule } from "@/lib/modules/registry"
+import { useStore } from "@/lib/store"
 
 export function WhatsAppButton() {
   const [isHovered, setIsHovered] = useState(false)
+  const activeModule = useStore((state) => state.activeModule)
+  const moduleInfo = getModule(activeModule)
   const phoneNumber = "254743325746" // Replace with actual number (digits only)
   const message =  `Hello 👋
 Welcome to Medlink Expedite.
 
-Thank you for reaching out to us. We specialize in the supply of quality medical equipment and healthcare solutions for hospitals, clinics, laboratories, and healthcare professionals.
+Thank you for reaching out to us. We specialize in the supply of quality ${moduleInfo.itemLabel} and healthcare solutions for hospitals, clinics, laboratories, and healthcare professionals.
 
 Kindly share your inquiry or quotation request, and our team will assist you promptly.
 
 To help us serve you better, please include:
-• Product or equipment name
+• Product name
 • Quantity required
 • Your location or facility name
 

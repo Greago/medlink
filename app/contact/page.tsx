@@ -5,9 +5,14 @@ import type React from "react"
 import { useState } from "react"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
+import Image from "next/image"
 import { Mail, Phone, MapPin, Clock, Send } from "lucide-react"
+import { getModule } from "@/lib/modules/registry"
+import { useStore } from "@/lib/store"
 
 export default function ContactPage() {
+  const activeModule = useStore((state) => state.activeModule)
+  const moduleInfo = getModule(activeModule)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,15 +35,18 @@ export default function ContactPage() {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="relative py-20 md:py-32 overflow-hidden bg-gradient-to-br from-[#0a3d3d] via-[#0d4f4f] to-[#115e59]">
+      <section className="relative py-20 md:py-32 overflow-hidden bg-gradient-to-br from-[#0a3d3d] via-[#0d4f4f] to-[#123b38]">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1576091160550-112173f7f869?w=1200&h=800&fit=crop"
             alt="Professional healthcare team"
-            className="w-full h-full object-cover"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0a3d3d]/55 via-[#0d4f4f]/50 to-[#115e59]/55" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0a3d3d]/55 via-[#0d4f4f]/50 to-[#123b38]/55" />
         </div>
         
         {/* SVG Pattern Overlay */}
@@ -55,7 +63,7 @@ export default function ContactPage() {
             Let&apos;s Connect & Build Solutions Together
           </h1>
           <p className="text-xl text-white/80 max-w-3xl mx-auto">
-            Have questions about our medical equipment or services? Our dedicated team is ready to assist you with expert advice and support.
+            Have questions about our {moduleInfo.label.toLowerCase()} or services? Our dedicated team is ready to assist you with expert advice and support.
           </p>
         </div>
       </section>
@@ -65,41 +73,41 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-8 mb-20">
             {/* Contact Card 1 */}
-            <div className="group relative bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-xl hover:border-[#0d9488]/30 transition-all duration-500">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#0d9488]/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="group relative bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-xl hover:border-[#0c1f1d]/30 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0c1f1d]/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative">
-                <div className="w-14 h-14 bg-[#0d9488]/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-[#0d9488]/20 transition-colors">
-                  <Phone className="text-[#0d9488]" size={28} />
+                <div className="w-14 h-14 bg-[#0c1f1d]/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-[#0c1f1d]/20 transition-colors">
+                  <Phone className="text-[#0c1f1d]" size={28} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Call Us</h3>
-                <p className="text-[#0d9488] font-semibold text-lg mb-2">+254743325746</p>
+                <p className="text-[#0c1f1d] font-semibold text-lg mb-2">+254743325746</p>
                 <p className="text-gray-600 text-sm">Monday - Friday, 9AM - 6PM EAT</p>
               </div>
             </div>
 
             {/* Contact Card 2 */}
-            <div className="group relative bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-xl hover:border-[#0d9488]/30 transition-all duration-500">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#0d9488]/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="group relative bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-xl hover:border-[#0c1f1d]/30 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0c1f1d]/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative">
-                <div className="w-14 h-14 bg-[#0d9488]/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-[#0d9488]/20 transition-colors">
-                  <Mail className="text-[#0d9488]" size={28} />
+                <div className="w-14 h-14 bg-[#0c1f1d]/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-[#0c1f1d]/20 transition-colors">
+                  <Mail className="text-[#0c1f1d]" size={28} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Email Us</h3>
                 <p className="text-gray-600 text-sm mb-1">
-                  <a href="mailto:info@medlinkexpedite.co.ke" className="text-[#0d9488] font-semibold hover:underline">info@medlinkexpedite.co.ke</a>
+                  <a href="mailto:info@medlinkexpedite.co.ke" className="text-[#0c1f1d] font-semibold hover:underline">info@medlinkexpedite.co.ke</a>
                 </p>
                 <p className="text-gray-600 text-sm">
-                  <a href="mailto:sales@medlinkexpedite.co.ke" className="text-[#0d9488] font-semibold hover:underline">sales@medlinkexpedite.co.ke</a>
+                  <a href="mailto:sales@medlinkexpedite.co.ke" className="text-[#0c1f1d] font-semibold hover:underline">sales@medlinkexpedite.co.ke</a>
                 </p>
               </div>
             </div>
 
             {/* Contact Card 3 */}
-            <div className="group relative bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-xl hover:border-[#0d9488]/30 transition-all duration-500">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#0d9488]/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="group relative bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-xl hover:border-[#0c1f1d]/30 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0c1f1d]/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative">
-                <div className="w-14 h-14 bg-[#0d9488]/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-[#0d9488]/20 transition-colors">
-                  <MapPin className="text-[#0d9488]" size={28} />
+                <div className="w-14 h-14 bg-[#0c1f1d]/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-[#0c1f1d]/20 transition-colors">
+                  <MapPin className="text-[#0c1f1d]" size={28} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Visit Us</h3>
                 <p className="font-semibold text-gray-900 mb-1">Bee Center</p>
@@ -116,15 +124,15 @@ export default function ContactPage() {
                   We&apos;re Here to Help
                 </h2>
                 <p className="text-lg text-gray-600 leading-relaxed">
-                  Whether you&apos;re looking for specific medical equipment, need technical support, or want to discuss a custom solution, our team is ready to assist you.
+                  Whether you&apos;re looking for specific {moduleInfo.itemLabel}, need technical support, or want to discuss a custom solution, our team is ready to assist you.
                 </p>
               </div>
 
               {/* Hours */}
-              <div className="bg-gradient-to-br from-[#f0fdf9] to-[#f0fdf9] border border-[#0d9488]/20 rounded-2xl p-8">
+              <div className="bg-gradient-to-br from-[#f3f4f6] to-[#f3f4f6] border border-[#0c1f1d]/20 rounded-2xl p-8">
                 <div className="flex gap-4 mb-6">
-                  <div className="w-12 h-12 bg-[#0d9488]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Clock className="text-[#0d9488]" size={24} />
+                  <div className="w-12 h-12 bg-[#0c1f1d]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Clock className="text-[#0c1f1d]" size={24} />
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 mb-1">Business Hours</h3>
@@ -183,7 +191,7 @@ export default function ContactPage() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent text-gray-900 placeholder-gray-500 transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0c1f1d] focus:border-transparent text-gray-900 placeholder-gray-500 transition-all"
                     placeholder="Your name"
                   />
                 </div>
@@ -195,7 +203,7 @@ export default function ContactPage() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent text-gray-900 placeholder-gray-500 transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0c1f1d] focus:border-transparent text-gray-900 placeholder-gray-500 transition-all"
                     placeholder="your@email.com"
                   />
                 </div>
@@ -206,7 +214,7 @@ export default function ContactPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent text-gray-900 placeholder-gray-500 transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0c1f1d] focus:border-transparent text-gray-900 placeholder-gray-500 transition-all"
                     placeholder="+254 (700) 000-0000"
                   />
                 </div>
@@ -217,7 +225,7 @@ export default function ContactPage() {
                     required
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent text-gray-900 transition-all appearance-none cursor-pointer"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0c1f1d] focus:border-transparent text-gray-900 transition-all appearance-none cursor-pointer"
                   >
                     <option value="">Select a subject</option>
                     <option value="product-inquiry">Product Inquiry</option>
@@ -235,14 +243,14 @@ export default function ContactPage() {
                     rows={4}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent text-gray-900 placeholder-gray-500 resize-none transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0c1f1d] focus:border-transparent text-gray-900 placeholder-gray-500 resize-none transition-all"
                     placeholder="Tell us more about your inquiry..."
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-[#0d9488] to-[#0f766e] text-white py-3.5 rounded-xl font-semibold hover:shadow-lg hover:from-[#0f766e] hover:to-[#115e59] transition-all duration-300 flex items-center justify-center gap-2 group"
+                  className="w-full bg-gradient-to-r from-[#0c1f1d] to-[#123b38] text-white py-3.5 rounded-xl font-semibold hover:shadow-lg hover:from-[#123b38] hover:to-[#123b38] transition-all duration-300 flex items-center justify-center gap-2 group"
                 >
                   <Send size={18} className="group-hover:translate-x-1 transition-transform" /> Send Message
                 </button>

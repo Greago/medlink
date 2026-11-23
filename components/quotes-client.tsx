@@ -2,24 +2,70 @@
 
 import Image from "next/image"
 import { useSearchParams } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
+import {
+  Check,
+  ChevronDown,
+  Clock,
+  Download,
+  Eye,
+  FileText,
+  Loader2,
+  Plus,
+  Search,
+  Send,
+  Trash2,
+  X,
+  XCircle,
+} from "lucide-react"
+import {
+  Badge,
+  Button,
+  Card,
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableHead,
+  DataTableHeader,
+  DataTableRow,
+  EmptyState,
+  Modal,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+  SectionHeader,
+  StatCard,
+} from "@/components/design-system"
+import { formatPrice } from "@/lib/catalogue"
+import { buildQuotePdf } from "@/lib/quote-pdf"
 import { useStore, type Quote, type QuoteItem } from "@/lib/store"
-import { Plus, Download, Trash2, FileText, X, Send, Check, Clock, XCircle, Eye } from "lucide-react"
 
-// Generate quote number
+const PAGE_SIZE = 8
+
+const statusVariant: Record<Quote["status"], "soft" | "info" | "success" | "danger" | "warning"> = {
+  Draft: "soft",
+  Sent: "info",
+  Accepted: "success",
+  Rejected: "danger",
+  Expired: "warning",
+}
+
+const statusIcon: Record<Quote["status"], typeof FileText> = {
+  Draft: FileText,
+  Sent: Send,
+  Accepted: Check,
+  Rejected: XCircle,
+  Expired: Clock,
+}
+
 function generateQuoteNumber() {
   const date = new Date()
   const year = date.getFullYear()
   const sequence = Math.floor(Math.random() * 10000).toString().padStart(4, "0")
   return `MEV/QT/${year}/${sequence}`
-}
-
-function formatKES(value: number) {
-  return value.toLocaleString("en-KE", {
-    style: "currency",
-    currency: "KES",
-    minimumFractionDigits: 2,
-  })
 }
 
 async function loadImageAsDataUrl(url: string) {
@@ -29,11 +75,8 @@ async function loadImageAsDataUrl(url: string) {
     return await new Promise<string>((resolve, reject) => {
       const reader = new FileReader()
       reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result)
-        } else {
-          reject(new Error("Unable to convert image to data URL"))
-        }
+        if (typeof reader.result === "string") resolve(reader.result)
+        else reject(new Error("Unable to convert image to data URL"))
       }
       reader.onerror = () => reject(reader.error)
       reader.readAsDataURL(blob)
@@ -43,257 +86,25 @@ async function loadImageAsDataUrl(url: string) {
   }
 }
 
-// PDF Generation function
-async function generatePDF(quote: Quote) {
-  // Dynamically import jspdf
-  const { default: jsPDF } = await import("jspdf")
-  
-  const doc = new jsPDF()
-  const pageWidth = doc.internal.pageSize.getWidth()
-  const pageHeight = doc.internal.pageSize.getHeight()
-  const margin = 20
-  let y = 20
-  const headerRgb = [0, 77, 62] as const
-  const accentRgb = [14, 110, 92] as const
-  const bodyRgb = [40, 40, 40] as const
-
-  const addPageIfNeeded = (spaceNeeded: number) => {
-    if (y + spaceNeeded > pageHeight - margin) {
-      doc.addPage()
-      y = margin
-      return true
-    }
-    return false
-  }
-
-  const addTableHeader = () => {
-    doc.setFillColor(...headerRgb)
-    doc.rect(margin, y, pageWidth - margin * 2, 10, "F")
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(9)
-    doc.setFont("helvetica", "bold")
-    doc.text("ITEM", margin + 3, y + 7)
-    doc.text("QTY", 110, y + 7)
-    doc.text("UNIT PRICE", 130, y + 7)
-    doc.text("TOTAL", pageWidth - margin - 3, y + 7, { align: "right" })
-  }
-
-  // Header
-  doc.setFillColor(...headerRgb)
-  doc.rect(0, 0, pageWidth, 48, "F")
-
+async function downloadQuotePdf(quote: Quote) {
   const logoDataUrl = await loadImageAsDataUrl("/teallogo.png")
-  if (logoDataUrl) {
-    doc.addImage(logoDataUrl, "PNG", margin, 12, 40, 22)
-  }
-
-  doc.setTextColor(255, 255, 255)
-  doc.setFontSize(15)
-  doc.setFont("helvetica", "bold")
-  const headerX = margin + 58
-  let headerY = 18
-  doc.text("MEDLINK EXPEDITE VENTURES LIMITED", headerX, headerY)
-
-  doc.setFontSize(9)
-  doc.setFont("helvetica", "normal")
-  headerY += 8
-  doc.text("Email: info@medlinkexpedite.co.ke", headerX, headerY)
-  headerY += 6
-  doc.text("Tel: +254 743 325 746", headerX, headerY)
-  headerY += 6
-  doc.text("Nairobi, Kenya", headerX, headerY)
-  headerY += 6
-  doc.text("Reliable Medical Equipment and Supplies", headerX, headerY)
-
-  // Quote title
-  y = 60
-  doc.setTextColor(...accentRgb)
-  doc.setFontSize(28)
-  doc.setFont("helvetica", "bold")
-  doc.text("QUOTATION", pageWidth - margin, y, { align: "right" })
-  
-  // Quote details
-  y = 75
-  doc.setTextColor(...bodyRgb)
-  doc.setFontSize(10)
-  doc.setFont("helvetica", "normal")
-  doc.text(`Quote #: ${quote.quoteNumber}`, pageWidth - margin, y, { align: "right" })
-  doc.text(`Date: ${new Date(quote.createdAt).toLocaleDateString()}`, pageWidth - margin, y + 6, { align: "right" })
-  doc.text(`Valid Until: ${new Date(quote.validUntil).toLocaleDateString()}`, pageWidth - margin, y + 12, { align: "right" })
-
-  // Client info
-  y = 75
-  doc.setTextColor(...accentRgb)
-  doc.setFontSize(11)
-  doc.setFont("helvetica", "bold")
-  doc.text("BILL TO:", margin, y)
-  doc.setTextColor(...bodyRgb)
-  doc.setFont("helvetica", "normal")
-  doc.setFontSize(10)
-  doc.text(quote.clientName, margin, y + 8)
-  doc.text(quote.clientCompany, margin, y + 14)
-  doc.text(quote.clientEmail, margin, y + 20)
-  doc.text(quote.clientPhone, margin, y + 26)
-  if (quote.clientAddress) {
-    const addressLines = doc.splitTextToSize(quote.clientAddress, 80)
-    doc.text(addressLines, margin, y + 32)
-  }
-
-  // Table header
-  y = 120
-  addTableHeader()
-
-  // Table rows
-  y += 15
-  doc.setFont("helvetica", "normal")
-  quote.items.forEach((item, index) => {
-    if (addPageIfNeeded(40)) {
-      addTableHeader()
-      y += 15
-    }
-
-    doc.setFillColor(index % 2 === 0 ? 255 : 250, index % 2 === 0 ? 255 : 250, index % 2 === 0 ? 255 : 250)
-    doc.rect(margin, y - 5, pageWidth - margin * 2, 10, "F")
-    
-    doc.setTextColor(50, 50, 50)
-    const productName = doc.splitTextToSize(item.productName, 70)
-    doc.text(productName[0], margin + 3, y + 2)
-    doc.text(item.quantity.toString(), 110, y + 2)
-    doc.text(formatKES(item.unitPrice), 130, y + 2)
-    doc.text(formatKES(item.total), pageWidth - margin - 3, y + 2, { align: "right" })
-    y += 12
-  })
-
-  // Totals
-  if (addPageIfNeeded(80)) {
-    // leave enough room for totals and summary
-  }
-
-  y += 10
-  doc.setDrawColor(...accentRgb)
-  doc.line(120, y, pageWidth - margin, y)
-  y += 8
-  
-  doc.setTextColor(...bodyRgb)
-  doc.setFont("helvetica", "normal")
-  doc.text("Subtotal:", 130, y)
-  doc.text(formatKES(quote.subtotal), pageWidth - margin - 3, y, { align: "right" })
-  
-  y += 8
-  doc.text(`Tax (${quote.taxRate}%):`, 130, y)
-  doc.text(formatKES(quote.taxAmount), pageWidth - margin - 3, y, { align: "right" })
-  
-  y += 10
-  doc.setFillColor(...headerRgb)
-  doc.rect(120, y - 5, pageWidth - margin - 120, 12, "F")
-  doc.setTextColor(255, 255, 255)
-  doc.setFont("helvetica", "bold")
-  doc.setFontSize(11)
-  doc.text("TOTAL:", 130, y + 3)
-  doc.text(formatKES(quote.totalPrice), pageWidth - margin - 3, y + 3, { align: "right" })
-
-  // Terms and conditions and notes
-  const terms = [
-    "1. This quotation is valid for thirty (30) days from the date of issue unless otherwise stated.",
-    "2. Prices quoted are in Kenya Shillings (KSh) and are inclusive of applicable VAT.",
-    "3. Delivery timelines shall be communicated upon confirmation of the order.",
-  ]
-  const estimatedTermsHeight = terms.reduce((height, term) => {
-    const termLines = doc.splitTextToSize(term, pageWidth - margin * 2)
-    return height + termLines.length * 6 + 10
-  }, 0)
-
-  if (addPageIfNeeded(estimatedTermsHeight + 80)) {
-    // start terms on a fresh page if needed
-  }
-
-  y += 25
-  doc.setTextColor(...accentRgb)
-  doc.setFontSize(10)
-  doc.setFont("helvetica", "bold")
-  doc.text("TERMS AND CONDITIONS", margin, y)
-  y += 6
-  doc.setTextColor(...bodyRgb)
-  doc.setFontSize(9)
-  doc.setFont("helvetica", "normal")
-
-  const lineSpacing = 4
-  terms.forEach(term => {
-    const termLines = doc.splitTextToSize(term, pageWidth - margin * 2)
-    y += 2
-    doc.text(termLines, margin, y)
-    y += termLines.length * lineSpacing
-  })
-
-  y += 10
-  doc.setTextColor(...accentRgb)
-  doc.setFontSize(10)
-  doc.setFont("helvetica", "bold")
-  doc.text("PAYMENT DETAILS", margin, y)
-  y += 6
-  doc.setTextColor(...bodyRgb)
-  doc.setFontSize(9)
-  doc.setFont("helvetica", "normal")
-  doc.text("Paybill Number: 400200", margin, y)
-  y += 6
-  doc.text("Account Number: 01102787392001", margin, y)
-  y += 8
-  doc.setFont("helvetica", "bold")
-  doc.text("Bank Transfer Details", margin, y)
-  y += 6
-  doc.setFont("helvetica", "normal")
-  doc.text("Account Name: Medlink Expedite Ventures Ltd", margin, y)
-  y += 6
-  doc.text("Account Number: 01102787392001", margin, y)
-  y += 6
-  doc.text("Bank: Co-operative Bank of Kenya", margin, y)
-  y += 8
-  doc.setFont("helvetica", "italic")
-  doc.text(
-    "Kindly use the quotation number as the payment reference and share proof of payment for processing.",
-    margin,
-    y,
-    { maxWidth: pageWidth - margin * 2 }
-  )
-
-  if (quote.notes) {
-    if (addPageIfNeeded(40)) {
-      // start notes on a fresh page if there isn't enough space
-    }
-    y += 14
-    doc.setFont("helvetica", "bold")
-    doc.text("NOTES:", margin, y)
-    doc.setFont("helvetica", "normal")
-    const noteLines = doc.splitTextToSize(quote.notes, pageWidth - margin * 2)
-    doc.text(noteLines, margin, y + 6)
-  }
-
-  // Footer
-  const footerY = doc.internal.pageSize.getHeight() - 20
-  doc.setDrawColor(...accentRgb)
-  doc.setLineWidth(0.5)
-  doc.line(margin, footerY - 10, pageWidth - margin, footerY - 10)
-  doc.setFontSize(8)
-  doc.setTextColor(100, 100, 100)
-  doc.text("Medlink Expediate Ventures Limited | info@medlinkexpedite.co.ke | +254 743 325 746", pageWidth / 2, footerY, { align: "center" })
-
-  // Save
-  doc.save(`Quote-${quote.quoteNumber}.pdf`)
-}
-
-const statusColors = {
-  Draft: { bg: "bg-gray-100", text: "text-gray-700", icon: FileText },
-  Sent: { bg: "bg-blue-100", text: "text-blue-700", icon: Send },
-  Accepted: { bg: "bg-green-100", text: "text-green-700", icon: Check },
-  Rejected: { bg: "bg-red-100", text: "text-red-700", icon: XCircle },
-  Expired: { bg: "bg-amber-100", text: "text-amber-700", icon: Clock },
+  const pdf = await buildQuotePdf(quote, logoDataUrl)
+  const blob = new Blob([pdf as unknown as BlobPart], { type: "application/pdf" })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = `Quote-${quote.quoteNumber}.pdf`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
 }
 
 export function QuotesClient() {
-  const { quotes, addQuote, products, inquiries } = useStore()
+  const { quotes, addQuote, sendQuoteEmail, products, inquiries } = useStore()
   const searchParams = useSearchParams()
   const inquiryId = searchParams.get("inquiryId")
-  const inquiry = inquiryId ? inquiries.find(i => i.id === inquiryId) : null
+  const inquiry = inquiryId ? inquiries.find((item) => item.id === inquiryId) : null
 
   const [showForm, setShowForm] = useState(false)
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([])
@@ -303,8 +114,12 @@ export function QuotesClient() {
   const [paymentTerms, setPaymentTerms] = useState("Net 30 - Payment due within 30 days of invoice date")
   const [notes, setNotes] = useState("")
   const [previewQuote, setPreviewQuote] = useState<Quote | null>(null)
+  const [sendingQuoteId, setSendingQuoteId] = useState<string | null>(null)
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [query, setQuery] = useState("")
+  const [status, setStatus] = useState<Quote["status"] | "All">("All")
+  const [page, setPage] = useState(1)
 
-  // Client info
   const [clientName, setClientName] = useState(inquiry?.contactPerson || "")
   const [clientCompany, setClientCompany] = useState(inquiry?.companyName || "")
   const [clientEmail, setClientEmail] = useState(inquiry?.email || "")
@@ -323,25 +138,22 @@ export function QuotesClient() {
 
   const addProductToQuote = () => {
     if (!selectedProductId) return
-    
-    const product = products.find(p => p.id === selectedProductId)
+    const product = products.find((item) => item.id === selectedProductId)
     if (!product) return
-
-    // Check if already added
-    const existing = quoteItems.find(i => i.productName === product.name)
+    const existing = quoteItems.find((item) => item.productName === product.name)
     if (existing) {
-      setQuoteItems(quoteItems.map(i => 
-        i.productName === product.name 
-          ? { ...i, quantity: i.quantity + 1, total: (i.quantity + 1) * i.unitPrice }
-          : i
-      ))
+      setQuoteItems(
+        quoteItems.map((item) =>
+          item.productName === product.name
+            ? { ...item, quantity: item.quantity + 1, total: (item.quantity + 1) * item.unitPrice }
+            : item
+        )
+      )
     } else {
-      setQuoteItems([...quoteItems, {
-        productName: product.name,
-        quantity: 1,
-        unitPrice: product.price,
-        total: product.price
-      }])
+      setQuoteItems([
+        ...quoteItems,
+        { productName: product.name, quantity: 1, unitPrice: product.price, total: product.price },
+      ])
     }
     setSelectedProductId("")
   }
@@ -360,15 +172,31 @@ export function QuotesClient() {
   }
 
   const removeItem = (index: number) => {
-    setQuoteItems(quoteItems.filter((_, i) => i !== index))
+    setQuoteItems(quoteItems.filter((_, itemIndex) => itemIndex !== index))
   }
 
   const subtotal = quoteItems.reduce((sum, item) => sum + item.total, 0)
   const taxAmount = subtotal * (taxRate / 100)
   const totalPrice = subtotal + taxAmount
 
-  const handleCreateQuote = () => {
-    if (quoteItems.length === 0 || !clientName || !clientCompany) return
+  const resetForm = () => {
+    setShowForm(false)
+    setQuoteItems([])
+    setClientName("")
+    setClientCompany("")
+    setClientEmail("")
+    setClientPhone("")
+    setClientAddress("")
+    setNotes("")
+    setTaxRate(10)
+    setValidDays(30)
+  }
+
+  const handleCreateQuote = async () => {
+    if (quoteItems.length === 0 || !clientName || !clientCompany) {
+      toast.error("Add at least one item, a contact name and a company.")
+      return
+    }
 
     const validUntil = new Date()
     validUntil.setDate(validUntil.getDate() + validDays)
@@ -394,200 +222,291 @@ export function QuotesClient() {
       createdAt: new Date().toISOString(),
     }
 
-    addQuote(newQuote)
-    resetForm()
+    try {
+      await addQuote(newQuote)
+      toast.success(`Quote ${newQuote.quoteNumber} saved as a draft`)
+      resetForm()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save the quote.")
+    }
   }
 
-  const resetForm = () => {
-    setShowForm(false)
-    setQuoteItems([])
-    setClientName("")
-    setClientCompany("")
-    setClientEmail("")
-    setClientPhone("")
-    setClientAddress("")
-    setNotes("")
-    setTaxRate(10)
-    setValidDays(30)
+  const handleSendEmail = async (quote: Quote) => {
+    setSendingQuoteId(quote.id)
+    try {
+      await sendQuoteEmail(quote.id)
+      toast.success(`Quote ${quote.quoteNumber} emailed to ${quote.clientEmail || "the customer"}.`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not email the quote.")
+    } finally {
+      setSendingQuoteId(null)
+    }
   }
+
+  const handleDownload = async (quote: Quote) => {
+    setDownloadingId(quote.id)
+    try {
+      await downloadQuotePdf(quote)
+      toast.success(`Quote ${quote.quoteNumber} PDF downloaded`)
+    } catch {
+      toast.error("Could not generate the quote PDF.")
+    } finally {
+      setDownloadingId(null)
+    }
+  }
+
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase()
+    return quotes
+      .filter((quote) => {
+        const matchesStatus = status === "All" || quote.status === status
+        const matchesQuery =
+          !needle ||
+          [quote.quoteNumber, quote.clientName, quote.clientCompany, quote.clientEmail]
+            .join(" ")
+            .toLowerCase()
+            .includes(needle)
+        return matchesStatus && matchesQuery
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }, [quotes, query, status])
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount)
+  const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const draftCount = quotes.filter((quote) => quote.status === "Draft").length
+  const quotedValue = quotes.reduce((total, quote) => total + quote.totalPrice, 0)
+
+  const inputClass =
+    "h-10 w-full rounded-xl border border-input bg-background px-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/25"
+  const tableInputClass =
+    "w-full rounded-lg border border-input bg-background px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25"
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-[#0f2b2e]">Quote Generator</h1>
-          <p className="text-[#5f7a7d] mt-1">Create professional quotes and export as PDF</p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center justify-center gap-2 bg-[#0d9488] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#0f766e] transition-colors"
-        >
-          <Plus size={20} /> New Quote
-        </button>
+    <div className="space-y-6 p-4 lg:p-7">
+      <SectionHeader
+        eyebrow="Customer requests"
+        title="Quote generator"
+        description="Build a formal KSh quote, preview it, download the PDF and email it to the customer. Quotes are shared across both divisions."
+        action={
+          <Button variant="primary" size="touch" onClick={() => setShowForm(true)}>
+            <Plus size={17} /> New quote
+          </Button>
+        }
+      />
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="All quotes" value={quotes.length} icon={FileText} hint="Both divisions" />
+        <StatCard label="Drafts" value={draftCount} icon={Clock} hint="Not yet sent" />
+        <StatCard label="Quoted value" value={formatPrice(quotedValue)} icon={Check} hint="KSh total" />
       </div>
 
-      {/* Quote Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-hidden">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[calc(100vh-3rem)] overflow-hidden animate-fade-in">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div>
-                <h2 className="text-xl font-bold text-[#0f2b2e]">Create New Quote</h2>
-                <p className="text-sm text-[#5f7a7d]">Fill in client details and add products</p>
-              </div>
-              <button onClick={resetForm} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <X size={20} className="text-gray-500" />
-              </button>
+      <Card className="gap-0 p-4 lg:p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="relative flex-1">
+            <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(event) => { setQuery(event.target.value); setPage(1) }}
+              placeholder="Search quote number, company or email"
+              className="h-11 w-full rounded-xl border border-input bg-background pl-11 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25"
+            />
+          </div>
+          <label className="relative">
+            <span className="sr-only">Filter by status</span>
+            <select
+              value={status}
+              onChange={(event) => { setStatus(event.target.value as Quote["status"] | "All"); setPage(1) }}
+              className="h-11 appearance-none rounded-xl border border-input bg-background pl-4 pr-10 text-sm font-medium outline-none focus:border-primary focus:ring-2 focus:ring-ring/25"
+            >
+              <option value="All">All statuses</option>
+              {(Object.keys(statusVariant) as Quote["status"][]).map((item) => (
+                <option key={item} value={item}>{item}</option>
+              ))}
+            </select>
+            <ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          </label>
+        </div>
+      </Card>
+
+      {quotes.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title="No quotes yet"
+          description="Create your first quote to get started."
+          action={<Button variant="primary" onClick={() => setShowForm(true)}><Plus size={16} /> Create quote</Button>}
+        />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon={Search}
+          title="No matching quotes"
+          description="Try a different search term or status."
+          action={<Button variant="soft" onClick={() => { setQuery(""); setStatus("All") }}>Clear filters</Button>}
+        />
+      ) : (
+        <>
+          <Card className="gap-0 overflow-hidden p-0">
+            <div className="overflow-x-auto">
+              <DataTable>
+                <DataTableHeader>
+                  <DataTableRow>
+                    <DataTableHead>Quote</DataTableHead>
+                    <DataTableHead>Client</DataTableHead>
+                    <DataTableHead>Status</DataTableHead>
+                    <DataTableHead>Items</DataTableHead>
+                    <DataTableHead>Total</DataTableHead>
+                    <DataTableHead className="text-right">Actions</DataTableHead>
+                  </DataTableRow>
+                </DataTableHeader>
+                <DataTableBody>
+                  {visible.map((quote) => {
+                    const Icon = statusIcon[quote.status]
+                    return (
+                      <DataTableRow key={quote.id}>
+                        <DataTableCell>
+                          <span className="flex items-center gap-2 font-semibold">
+                            <Icon size={15} className="text-primary" /> {quote.quoteNumber}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-muted-foreground">
+                            {new Date(quote.createdAt).toLocaleDateString()}
+                          </span>
+                        </DataTableCell>
+                        <DataTableCell>
+                          <span className="block text-xs font-semibold">{quote.clientCompany}</span>
+                          <span className="block text-xs text-muted-foreground">{quote.clientName}</span>
+                        </DataTableCell>
+                        <DataTableCell><Badge variant={statusVariant[quote.status]}>{quote.status}</Badge></DataTableCell>
+                        <DataTableCell>{quote.items.length}</DataTableCell>
+                        <DataTableCell className="font-semibold text-primary">{formatPrice(quote.totalPrice)}</DataTableCell>
+                        <DataTableCell>
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="icon-sm" onClick={() => setPreviewQuote(quote)} aria-label={`Preview ${quote.quoteNumber}`}>
+                              <Eye size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => void handleDownload(quote)}
+                              disabled={downloadingId === quote.id}
+                              aria-label={`Download ${quote.quoteNumber} PDF`}
+                            >
+                              {downloadingId === quote.id ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                            </Button>
+                            <Button
+                              variant="soft"
+                              size="sm"
+                              onClick={() => void handleSendEmail(quote)}
+                              disabled={sendingQuoteId === quote.id}
+                            >
+                              {sendingQuoteId === quote.id ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                              {quote.status === "Sent" ? "Resend" : "Email"}
+                            </Button>
+                          </div>
+                        </DataTableCell>
+                      </DataTableRow>
+                    )
+                  })}
+                </DataTableBody>
+              </DataTable>
             </div>
+          </Card>
 
-            <div className="p-6 overflow-hidden">
-              <div className="grid gap-6 lg:grid-cols-[1.45fr_0.85fr]">
-                <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-18rem)] pr-4">
-                  {/* Client Information */}
-                  <div>
-                <h3 className="text-sm font-semibold text-[#0f2b2e] uppercase tracking-wide mb-4">Client Information</h3>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-[#0f2b2e] mb-1">Contact Name *</label>
-                    <input
-                      type="text"
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent"
-                      placeholder="John Smith"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#0f2b2e] mb-1">Company Name *</label>
-                    <input
-                      type="text"
-                      value={clientCompany}
-                      onChange={(e) => setClientCompany(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent"
-                      placeholder="Healthcare Inc."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#0f2b2e] mb-1">Email</label>
-                    <input
-                      type="email"
-                      value={clientEmail}
-                      onChange={(e) => setClientEmail(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent"
-                      placeholder="john@healthcare.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#0f2b2e] mb-1">Phone</label>
-                    <input
-                      type="tel"
-                      value={clientPhone}
-                      onChange={(e) => setClientPhone(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent"
-                      placeholder="+1 (555) 123-4567"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-[#0f2b2e] mb-1">Address</label>
-                    <input
-                      type="text"
-                      value={clientAddress}
-                      onChange={(e) => setClientAddress(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent"
-                      placeholder="123 Medical Center Dr, New York, NY 10001"
-                    />
-                  </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+            <span>Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length}</span>
+            <div className="flex items-center gap-2">
+              <Button variant="outlineSoft" size="sm" disabled={currentPage <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous</Button>
+              <span className="font-semibold text-ink">Page {currentPage} of {pageCount}</span>
+              <Button variant="outlineSoft" size="sm" disabled={currentPage >= pageCount} onClick={() => setPage((value) => value + 1)}>Next</Button>
+            </div>
+          </div>
+        </>
+      )}
+
+      <Modal open={showForm} onOpenChange={(open) => !open && resetForm()}>
+        <ModalContent className="flex max-h-[92vh] max-w-6xl flex-col gap-0 overflow-hidden p-0">
+          <ModalHeader className="border-b border-border p-6 pr-14">
+            <ModalTitle>Create new quote</ModalTitle>
+            <ModalDescription>Add client details and KSh-priced line items. The quote is saved as a draft.</ModalDescription>
+          </ModalHeader>
+
+          <div className="grid flex-1 gap-6 overflow-y-auto p-6 lg:grid-cols-[1.4fr_0.9fr]">
+            <div className="space-y-6">
+              <section>
+                <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-primary">Client information</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label>
+                    <span className="mb-1.5 block text-xs font-semibold">Contact name *</span>
+                    <input value={clientName} onChange={(event) => setClientName(event.target.value)} className={inputClass} placeholder="John Smith" />
+                  </label>
+                  <label>
+                    <span className="mb-1.5 block text-xs font-semibold">Company name *</span>
+                    <input value={clientCompany} onChange={(event) => setClientCompany(event.target.value)} className={inputClass} placeholder="Healthcare facility" />
+                  </label>
+                  <label>
+                    <span className="mb-1.5 block text-xs font-semibold">Email</span>
+                    <input type="email" value={clientEmail} onChange={(event) => setClientEmail(event.target.value)} className={inputClass} placeholder="client@example.co.ke" />
+                  </label>
+                  <label>
+                    <span className="mb-1.5 block text-xs font-semibold">Phone</span>
+                    <input type="tel" value={clientPhone} onChange={(event) => setClientPhone(event.target.value)} className={inputClass} placeholder="+254 ..." />
+                  </label>
+                  <label className="sm:col-span-2">
+                    <span className="mb-1.5 block text-xs font-semibold">Address</span>
+                    <input value={clientAddress} onChange={(event) => setClientAddress(event.target.value)} className={inputClass} placeholder="Optional" />
+                  </label>
                 </div>
-              </div>
+              </section>
 
-              {/* Add Products */}
-              <div>
-                <h3 className="text-sm font-semibold text-[#0f2b2e] uppercase tracking-wide mb-4">Line Items</h3>
-                
-                {/* Product selector */}
-                <div className="flex gap-3 mb-4">
-                  <select
-                    value={selectedProductId}
-                    onChange={(e) => setSelectedProductId(e.target.value)}
-                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent"
-                  >
-                    <option value="">Select a product...</option>
-                    {products.map(product => (
-                      <option key={product.id} value={product.id}>
-                        {product.name} - {formatKES(product.price)}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={addProductToQuote}
-                    disabled={!selectedProductId}
-                    className="px-4 py-2.5 bg-[#0d9488] text-white rounded-lg font-medium hover:bg-[#0f766e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Add
-                  </button>
-                  <button
-                    onClick={addCustomItem}
-                    className="px-4 py-2.5 border border-gray-300 text-[#0f2b2e] rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    Custom Item
-                  </button>
+              <section>
+                <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-primary">Line items</h3>
+                <div className="mb-3 flex flex-col gap-2 sm:flex-row">
+                  <label className="relative flex-1">
+                    <span className="sr-only">Select a product</span>
+                    <select value={selectedProductId} onChange={(event) => setSelectedProductId(event.target.value)} className={`${inputClass} appearance-none pr-10`}>
+                      <option value="">Select a product…</option>
+                      {products.map((product) => (
+                        <option key={product.id} value={product.id}>{product.name} — {formatPrice(product.price)}</option>
+                      ))}
+                    </select>
+                    <ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  </label>
+                  <Button variant="primary" size="touch" onClick={addProductToQuote} disabled={!selectedProductId}>Add</Button>
+                  <Button variant="outlineSoft" size="touch" onClick={addCustomItem}>Custom item</Button>
                 </div>
 
-                {/* Items table */}
-                {quoteItems.length > 0 && (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden max-h-[24rem] overflow-y-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50">
+                {quoteItems.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+                    No items added yet. Select a product or add a custom item.
+                  </div>
+                ) : (
+                  <div className="max-h-64 overflow-y-auto rounded-2xl border border-border">
+                    <table className="w-full text-left">
+                      <thead className="sticky top-0 bg-muted/80 text-[10px] uppercase tracking-wide text-muted-foreground backdrop-blur">
                         <tr>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Product</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold text-gray-600 uppercase w-24">Qty</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold text-gray-600 uppercase w-32">Unit Price</th>
-                          <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase w-32">Total</th>
-                          <th className="w-12"></th>
+                          <th className="px-3 py-2">Item</th>
+                          <th className="w-20 px-2 py-2 text-center">Qty</th>
+                          <th className="w-28 px-2 py-2 text-right">Unit price</th>
+                          <th className="w-28 px-2 py-2 text-right">Total</th>
+                          <th className="w-10" />
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-border">
                         {quoteItems.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-50">
-                            <td className="px-4 py-3">
-                              <input
-                                type="text"
-                                value={item.productName}
-                                onChange={(e) => updateItem(index, "productName", e.target.value)}
-                                className="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#0d9488]"
-                              />
+                          <tr key={index}>
+                            <td className="px-3 py-2">
+                              <input value={item.productName} onChange={(event) => updateItem(index, "productName", event.target.value)} className={tableInputClass} placeholder="Item name" />
                             </td>
-                            <td className="px-4 py-3">
-                              <input
-                                type="number"
-                                min="1"
-                                value={item.quantity}
-                                onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
-                                className="w-full px-2 py-1 border border-gray-200 rounded text-center focus:outline-none focus:ring-1 focus:ring-[#0d9488]"
-                              />
+                            <td className="px-2 py-2">
+                              <input type="number" min={1} value={item.quantity} onChange={(event) => updateItem(index, "quantity", Number(event.target.value) || 1)} className={`${tableInputClass} text-center`} />
                             </td>
-                            <td className="px-4 py-3">
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={item.unitPrice}
-                                onChange={(e) => updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
-                                className="w-full px-2 py-1 border border-gray-200 rounded text-center focus:outline-none focus:ring-1 focus:ring-[#0d9488]"
-                              />
+                            <td className="px-2 py-2">
+                              <input type="number" min={0} step="0.01" value={item.unitPrice} onChange={(event) => updateItem(index, "unitPrice", Number(event.target.value) || 0)} className={`${tableInputClass} text-right`} />
                             </td>
-                            <td className="px-4 py-3 text-right font-semibold text-[#0f2b2e]">
-                              {formatKES(item.total)}
-                            </td>
-                            <td className="px-2 py-3">
-                              <button
-                                onClick={() => removeItem(index)}
-                                className="p-1.5 hover:bg-red-50 rounded text-red-500"
-                              >
-                                <Trash2 size={16} />
-                              </button>
+                            <td className="px-2 py-2 text-right text-sm font-semibold">{formatPrice(item.total)}</td>
+                            <td className="px-1 py-2">
+                              <Button variant="ghost" size="icon-sm" onClick={() => removeItem(index)} aria-label="Remove item" className="text-danger">
+                                <Trash2 size={15} />
+                              </Button>
                             </td>
                           </tr>
                         ))}
@@ -595,325 +514,155 @@ export function QuotesClient() {
                     </table>
                   </div>
                 )}
-
-                {quoteItems.length === 0 && (
-                  <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
-                    <FileText size={32} className="mx-auto text-gray-300 mb-2" />
-                    <p className="text-gray-500">No items added yet</p>
-                    <p className="text-sm text-gray-400">Select a product above or add a custom item</p>
-                  </div>
-                )}
-              </div>
+              </section>
             </div>
 
-              <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-18rem)] pl-4">
-                {/* Totals and Settings */}
-                {quoteItems.length > 0 && (
-                  <div className="grid sm:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-[#0f2b2e] mb-1">Tax Rate (%)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={taxRate}
-                          onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-[#0f2b2e] mb-1">Valid for (days)</label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={validDays}
-                          onChange={(e) => setValidDays(parseInt(e.target.value) || 30)}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488]"
-                        />
-                      </div>
-                    </div>
+            <div className="space-y-4">
+              <Card className="gap-0 p-4">
+                <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.14em] text-primary">Quote settings</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <label>
+                    <span className="mb-1.5 block text-xs font-semibold">Tax rate (%)</span>
+                    <input type="number" min={0} max={100} step="0.1" value={taxRate} onChange={(event) => setTaxRate(Number(event.target.value) || 0)} className={inputClass} />
+                  </label>
+                  <label>
+                    <span className="mb-1.5 block text-xs font-semibold">Valid for (days)</span>
+                    <input type="number" min={1} value={validDays} onChange={(event) => setValidDays(Number(event.target.value) || 30)} className={inputClass} />
+                  </label>
+                </div>
+                <label className="mt-3 block">
+                  <span className="mb-1.5 block text-xs font-semibold">Payment terms</span>
+                  <select value={paymentTerms} onChange={(event) => setPaymentTerms(event.target.value)} className={inputClass}>
+                    <option>Net 30 - Payment due within 30 days of invoice date</option>
+                    <option>Net 15 - Payment due within 15 days of invoice date</option>
+                    <option>Due on Receipt - Payment due immediately</option>
+                    <option>50% Upfront - 50% due before delivery</option>
+                    <option>Custom terms (specify in notes)</option>
+                  </select>
+                </label>
+                <label className="mt-3 block">
+                  <span className="mb-1.5 block text-xs font-semibold">Notes</span>
+                  <textarea rows={4} value={notes} onChange={(event) => setNotes(event.target.value)} className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25" placeholder="Delivery notes or additional terms" />
+                </label>
+              </Card>
+
+              <Card className="gap-0 bg-muted/50 p-4">
+                <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">Summary</h3>
+                <div className="mt-4 space-y-2 text-sm">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPrice(subtotal)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Tax ({taxRate}%)</span><span>{formatPrice(taxAmount)}</span></div>
+                  <div className="flex justify-between border-t border-border pt-3 text-base font-bold text-primary">
+                    <span>Total</span><span>{formatPrice(totalPrice)}</span>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          <ModalFooter className="border-t border-border bg-muted/30 p-4 sm:p-5">
+            <Button variant="outlineSoft" size="touch" onClick={resetForm}>Cancel</Button>
+            <Button variant="primary" size="touch" onClick={() => void handleCreateQuote()} disabled={quoteItems.length === 0 || !clientName || !clientCompany}>
+              <FileText size={16} /> Create quote
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal open={Boolean(previewQuote)} onOpenChange={(open) => !open && setPreviewQuote(null)}>
+        <ModalContent className="flex max-h-[92vh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
+          {previewQuote && (
+            <>
+              <ModalHeader className="border-b border-border p-5 pr-14 sm:p-6 sm:pr-14">
+                <ModalTitle>Quote preview</ModalTitle>
+                <ModalDescription>{previewQuote.quoteNumber} · Created {new Date(previewQuote.createdAt).toLocaleDateString()}</ModalDescription>
+              </ModalHeader>
+              <div className="space-y-5 overflow-y-auto p-5 sm:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <Image src="/logo.png" alt="Medlink Logo" width={56} height={56} className="rounded-xl object-contain" />
                     <div>
-                      <label className="block text-sm font-medium text-[#0f2b2e] mb-1">Payment Terms</label>
-                      <select
-                        value={paymentTerms}
-                        onChange={(e) => setPaymentTerms(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488]"
-                      >
-                        <option>Net 30 - Payment due within 30 days of invoice date</option>
-                        <option>Net 15 - Payment due within 15 days of invoice date</option>
-                        <option>Due on Receipt - Payment due immediately</option>
-                        <option>50% Upfront - 50% due before delivery</option>
-                        <option>Custom terms (specify in notes)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[#0f2b2e] mb-1">Notes</label>
-                      <textarea
-                        rows={3}
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] resize-none"
-                        placeholder="Additional terms, delivery notes, etc."
-                      />
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Medlink Expedite</p>
+                      <p className="text-lg font-bold">Quotation</p>
                     </div>
                   </div>
-
-                  <div className="bg-gray-50 rounded-xl p-5">
-                    <h4 className="text-sm font-semibold text-gray-600 uppercase mb-4">Quote Summary</h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-[#0f2b2e]">
-                        <span>Subtotal</span>
-                        <span className="font-medium">{formatKES(subtotal)}</span>
-                      </div>
-                      <div className="flex justify-between text-[#0f2b2e]">
-                        <span>Tax ({taxRate}%)</span>
-                        <span className="font-medium">{formatKES(taxAmount)}</span>
-                      </div>
-                      <div className="border-t border-gray-300 pt-3 flex justify-between">
-                        <span className="font-bold text-lg text-[#0f2b2e]">Total</span>
-                        <span className="font-bold text-xl text-[#0d9589]">{formatKES(totalPrice)}</span>
-                      </div>
-                    </div>
+                  <div className="text-right text-xs text-muted-foreground">
+                    <p>info@medlinkexpedite.co.ke</p>
+                    <p>+254 743 325 746</p>
+                    <p>Nairobi, Kenya</p>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
 
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
-              <button
-                onClick={resetForm}
-                className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateQuote}
-                disabled={quoteItems.length === 0 || !clientName || !clientCompany}
-                className="px-6 py-2.5 bg-[#0d9488] text-white rounded-lg font-medium hover:bg-[#0f766e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                <FileText size={18} /> Create Quote
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      )}
-
-      {/* Quote Preview Modal */}
-      {previewQuote && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-fade-in">
-            <div className="sticky top-0 bg-white flex items-center justify-between p-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-[#0f2b2e]">Quote Preview</h2>
-              <button onClick={() => setPreviewQuote(null)} className="p-2 hover:bg-gray-100 rounded-lg">
-                <X size={20} />
-              </button>
-            </div>
-            <div className="p-6 space-y-6">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-center gap-4">
-                  <Image
-                    src="/logo.png"
-                    alt="Medlink Logo"
-                    width={72}
-                    height={72}
-                    className="rounded-2xl object-contain"
-                  />
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.3em] text-[#0d9589] font-semibold">Medlink Expedite</p>
-                    <p className="text-lg font-bold text-[#0f2b2e]">Quotation</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-muted/50 p-4 text-sm">
+                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Bill to</p>
+                    <p className="mt-2 font-semibold">{previewQuote.clientName}</p>
+                    <p>{previewQuote.clientCompany}</p>
+                    <p>{previewQuote.clientEmail}</p>
+                    <p>{previewQuote.clientPhone}</p>
+                    {previewQuote.clientAddress && <p className="mt-2">{previewQuote.clientAddress}</p>}
+                  </div>
+                  <div className="rounded-2xl bg-muted/50 p-4 text-sm">
+                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Quote details</p>
+                    <dl className="mt-2 space-y-1.5">
+                      <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Valid until</dt><dd>{new Date(previewQuote.validUntil).toLocaleDateString()}</dd></div>
+                      <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Status</dt><dd><Badge variant={statusVariant[previewQuote.status]}>{previewQuote.status}</Badge></dd></div>
+                      <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Payment terms</dt><dd className="text-right">{previewQuote.paymentTerms}</dd></div>
+                    </dl>
                   </div>
                 </div>
-                <div className="text-sm text-gray-500 space-y-1 text-right">
-                  <p>info@medlinkexpedite.co.ke</p>
-                  <p>+254 743 325 746</p>
-                  <p>Nairobi, Kenya</p>
-                </div>
-              </div>
 
-              <div className="grid gap-4 md:grid-cols-[1fr_1fr]">
-                <div className="rounded-3xl border border-gray-200 bg-gray-50 p-5">
-                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-2">Bill To</p>
-                  <p className="font-semibold text-[#0f2b2e]">{previewQuote.clientName}</p>
-                  <p className="text-sm text-gray-600">{previewQuote.clientCompany}</p>
-                  <p className="text-sm text-gray-600">{previewQuote.clientEmail}</p>
-                  <p className="text-sm text-gray-600">{previewQuote.clientPhone}</p>
-                  {previewQuote.clientAddress && (
-                    <p className="text-sm text-gray-600 mt-2">{previewQuote.clientAddress}</p>
-                  )}
+                <div className="overflow-hidden rounded-2xl border border-border">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-muted/70 text-xs uppercase tracking-wide text-muted-foreground">
+                      <tr><th className="px-4 py-2">Item</th><th className="px-2 py-2 text-center">Qty</th><th className="px-2 py-2 text-right">Unit</th><th className="px-4 py-2 text-right">Total</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {previewQuote.items.map((item, index) => (
+                        <tr key={index}>
+                          <td className="px-4 py-3 font-medium">{item.productName || "Custom item"}</td>
+                          <td className="px-2 py-3 text-center">{item.quantity}</td>
+                          <td className="px-2 py-3 text-right">{formatPrice(item.unitPrice)}</td>
+                          <td className="px-4 py-3 text-right font-semibold">{formatPrice(item.total)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <div className="rounded-3xl border border-gray-200 bg-gray-50 p-5">
-                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-2">Quote Details</p>
-                  <div className="text-sm text-gray-600 space-y-2">
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-700">Quote #</span>
-                      <span>{previewQuote.quoteNumber}</span>
+
+                <div className="grid gap-4 sm:grid-cols-[1fr_240px]">
+                  <div className="rounded-2xl bg-muted/50 p-4 text-sm">
+                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Payment details</p>
+                    <div className="mt-2 space-y-1">
+                      <p><span className="font-semibold">M-Pesa paybill:</span> 400200</p>
+                      <p><span className="font-semibold">Account number:</span> 01102787392001</p>
+                      <p className="pt-2"><span className="font-semibold">Bank:</span> Co-operative Bank of Kenya</p>
+                      <p><span className="font-semibold">Account name:</span> Medlink Expedite Ventures Ltd</p>
+                      <p><span className="font-semibold">Account number:</span> 01102787392001</p>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-700">Date</span>
-                      <span>{new Date(previewQuote.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-700">Valid Until</span>
-                      <span>{new Date(previewQuote.validUntil).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-700">Status</span>
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusColors[previewQuote.status].bg} ${statusColors[previewQuote.status].text}`}>
-                        {previewQuote.status}
-                      </span>
-                    </div>
+                    {previewQuote.notes && <p className="mt-3 border-t border-border pt-3 text-muted-foreground">{previewQuote.notes}</p>}
+                  </div>
+                  <div className="rounded-2xl border border-border p-4 text-sm">
+                    <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPrice(previewQuote.subtotal)}</span></div>
+                    <div className="mt-2 flex justify-between"><span className="text-muted-foreground">Tax</span><span>{formatPrice(previewQuote.taxAmount)}</span></div>
+                    <div className="mt-3 flex justify-between border-t border-border pt-3 text-base font-bold text-primary"><span>Total</span><span>{formatPrice(previewQuote.totalPrice)}</span></div>
                   </div>
                 </div>
               </div>
-
-              <div className="overflow-hidden rounded-3xl border border-gray-200">
-                <table className="w-full text-left">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Item</th>
-                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 text-center">Qty</th>
-                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 text-right">Unit Price</th>
-                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 text-right">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {previewQuote.items.map((item, i) => (
-                      <tr key={i}>
-                        <td className="px-4 py-4">
-                          <p className="font-medium text-[#0f2b2e]">{item.productName || "Custom Item"}</p>
-                        </td>
-                        <td className="px-4 py-4 text-center text-gray-600">{item.quantity}</td>
-                        <td className="px-4 py-4 text-right text-gray-600">{formatKES(item.unitPrice)}</td>
-                        <td className="px-4 py-4 text-right font-semibold text-[#0f2b2e]">{formatKES(item.total)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-[1fr_280px]">
-                <div className="rounded-3xl border border-gray-200 bg-gray-50 p-5 text-sm text-gray-600">
-                  <p className="font-semibold text-gray-800 mb-2">Notes</p>
-                  <p>{previewQuote.notes || "No additional notes provided."}</p>
-                  <p className="mt-4 text-xs uppercase tracking-[0.2em] font-medium text-gray-500">Payment Terms</p>
-                  <p>{previewQuote.paymentTerms}</p>
-                  <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
-                    <p className="text-sm font-semibold text-gray-800 mb-2">Payment Details</p>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p className="mt-3 font-semibold text-gray-900">MPESA Details</p>
-                      <p><span className="font-semibold text-gray-900">Paybill Number:</span> 400200</p>
-                      <p><span className="font-semibold text-gray-900">Account Number:</span> 01102787392001</p>
-                      <p className="mt-3 font-semibold text-gray-900">Bank Transfer Details</p>
-                      <p>Account Name: Medlink Expedite Ventures Ltd</p>
-                      <p>Account Number: 01102787392001</p>
-                      <p>Bank: Co-operative Bank of Kenya</p>
-                      <p className="mt-3 text-xs text-gray-500">Use the quotation number as the payment reference and share proof of payment for processing.</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="rounded-3xl border border-gray-200 bg-[#081916]/5 p-5">
-                  <div className="flex justify-between text-sm text-gray-600 mb-3">
-                    <span>Subtotal</span>
-                    <span>{formatKES(previewQuote.subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-600 mb-3">
-                    <span>Tax ({previewQuote.taxRate}%)</span>
-                    <span>{formatKES(previewQuote.taxAmount)}</span>
-                  </div>
-                  <div className="border-t border-gray-200 pt-3 flex justify-between text-lg font-bold text-[#0f2b2e]">
-                    <span>Total</span>
-                    <span>{formatKES(previewQuote.totalPrice)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-              <button
-                onClick={() => { generatePDF(previewQuote); setPreviewQuote(null); }}
-                className="px-6 py-2.5 bg-[#0d9488] text-white rounded-lg font-medium hover:bg-[#0f766e] transition-colors flex items-center gap-2"
-              >
-                <Download size={18} /> Download PDF
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Quotes List */}
-      {quotes.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FileText size={32} className="text-gray-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-[#0f2b2e] mb-1">No quotes yet</h3>
-          <p className="text-gray-500 mb-4">Create your first quote to get started</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0d9488] text-white rounded-lg font-medium hover:bg-[#0f766e] transition-colors"
-          >
-            <Plus size={18} /> Create Quote
-          </button>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {quotes.map((quote) => {
-            const StatusIcon = statusColors[quote.status].icon
-            return (
-              <div
-                key={quote.id}
-                className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-[#f0fdfa] rounded-lg flex items-center justify-center shrink-0">
-                      <FileText size={24} className="text-[#0d9488]" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-[#0f2b2e]">{quote.quoteNumber}</h3>
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[quote.status].bg} ${statusColors[quote.status].text}`}>
-                          <StatusIcon size={12} /> {quote.status}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600">{quote.clientCompany} - {quote.clientName}</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Created {new Date(quote.createdAt).toLocaleDateString()} | Valid until {new Date(quote.validUntil).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 sm:gap-6">
-                    <div className="text-right">
-                      <p className="text-xs text-gray-500">{quote.items.length} item{quote.items.length !== 1 ? "s" : ""}</p>
-                      <p className="text-xl font-bold text-[#0d9589]">{formatKES(quote.totalPrice)}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setPreviewQuote(quote)}
-                        className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
-                        title="Preview"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      <button
-                        onClick={() => generatePDF(quote)}
-                        className="p-2.5 bg-[#0d9488] text-white rounded-lg hover:bg-[#0f766e] transition-colors"
-                        title="Download PDF"
-                      >
-                        <Download size={18} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
+              <ModalFooter className="border-t border-border bg-muted/30 p-4 sm:p-5">
+                <Button variant="outlineSoft" size="touch" onClick={() => setPreviewQuote(null)}>Close</Button>
+                <Button variant="soft" size="touch" onClick={() => void handleDownload(previewQuote)} disabled={downloadingId === previewQuote.id}>
+                  {downloadingId === previewQuote.id ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                  Download PDF
+                </Button>
+                <Button variant="primary" size="touch" onClick={() => void handleSendEmail(previewQuote)} disabled={sendingQuoteId === previewQuote.id}>
+                  {sendingQuoteId === previewQuote.id ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  {previewQuote.status === "Sent" ? "Resend email" : "Email quote"}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   )
 }

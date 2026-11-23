@@ -47,16 +47,16 @@ export function Features() {
     <section className="py-24 bg-[#f5f5f3] relative overflow-hidden">
       {/* Decorative background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#0d9488]/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#14b8a6]/5 rounded-full blur-[120px]" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#0c1f1d]/5 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#2d6e67]/5 rounded-full blur-[120px]" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-16">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#0d9488]/10 text-[#0d9488] text-sm font-semibold rounded-full mb-4">
-              <span className="w-1.5 h-1.5 bg-[#0d9488] rounded-full" />
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#0c1f1d]/10 text-[#0c1f1d] text-sm font-semibold rounded-full mb-4">
+              <span className="w-1.5 h-1.5 bg-[#0c1f1d] rounded-full" />
               Why Choose Medlink
             </span>
             <h2 className="text-3xl md:text-5xl font-bold text-[#1a1a1a] mb-4 leading-tight">
@@ -84,7 +84,7 @@ export function Features() {
             return (
               <div
                 key={i}
-                className="group relative bg-white rounded-2xl p-8 border border-[#e5e5e3] hover:border-[#0d9488]/30 hover:shadow-xl hover:shadow-[#0d9488]/5 transition-all duration-500"
+                className="group relative bg-white rounded-2xl p-8 border border-[#e5e5e3] hover:border-[#0c1f1d]/30 hover:shadow-xl hover:shadow-[#0c1f1d]/5 transition-all duration-500"
               >
                 {/* Icon with gradient background */}
                 <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
@@ -100,7 +100,7 @@ export function Features() {
 
                 {/* Hover arrow */}
                 <div className="absolute bottom-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <ArrowRight size={20} className="text-[#0d9488]" />
+                  <ArrowRight size={20} className="text-[#0c1f1d]" />
                 </div>
               </div>
             )
@@ -117,7 +117,7 @@ export function Features() {
               { value: "10K+", label: "Orders Fulfilled" },
             ].map((stat, i) => (
               <div key={i} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-[#2dd4bf] mb-2">{stat.value}</div>
+                <div className="text-3xl md:text-4xl font-bold text-[#18bcaa] mb-2">{stat.value}</div>
                 <div className="text-sm text-[#8aa8a5]">{stat.label}</div>
               </div>
             ))}

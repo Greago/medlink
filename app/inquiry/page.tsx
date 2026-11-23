@@ -2,11 +2,13 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Plus, X } from "lucide-react"
 import { useStore } from "@/lib/store"
+import { formatPrice } from "@/lib/catalogue"
+import { getModule } from "@/lib/modules/registry"
 
 export default function InquiryPage() {
   const [formData, setFormData] = useState({
@@ -21,6 +23,28 @@ export default function InquiryPage() {
   const [currentProduct, setCurrentProduct] = useState("")
   const [submitted, setSubmitted] = useState(false)
   const addInquiry = useStore((s) => s.addInquiry)
+  const cart = useStore((s) => s.cart)
+  const activeModule = useStore((state) => state.activeModule)
+  const moduleInfo = getModule(activeModule)
+
+  useEffect(() => {
+    if (cart.length === 0) return
+
+    setFormData((previous) =>
+      previous.products.length > 0
+        ? previous
+        : {
+            ...previous,
+            products: cart.map(
+              (item) => `${item.product.name} (x${item.quantity})`
+            ),
+            quantity: cart.reduce((total, item) => total + item.quantity, 0),
+            additionalNotes: `Estimated cart total: ${formatPrice(
+              cart.reduce((total, item) => total + item.product.price * item.quantity, 0)
+            )}`,
+          }
+    )
+  }, [cart])
 
   const handleAddProduct = () => {
     if (currentProduct.trim()) {
@@ -39,9 +63,9 @@ export default function InquiryPage() {
     })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    addInquiry({
+    await addInquiry({
       id: Date.now().toString(),
       companyName: formData.companyName,
       contactPerson: formData.contactPerson,
@@ -73,9 +97,11 @@ export default function InquiryPage() {
       {/* Hero */}
       <section className="py-16 md:py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 animate-fade-in">Request Equipment</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 animate-fade-in">
+            Request {moduleInfo.productLabel}
+          </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Submit your equipment inquiry and our team will provide you with a customized quote and delivery timeline.
+            Submit your {moduleInfo.itemLabel} inquiry and our team will provide you with a customized quote and delivery timeline.
           </p>
         </div>
       </section>
@@ -142,7 +168,9 @@ export default function InquiryPage() {
               </div>
             </div>
 
-            <h2 className="text-2xl font-bold text-foreground mb-6">Equipment Requirements</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-6">
+              {moduleInfo.productLabel} Requirements
+            </h2>
 
             <div className="mb-6">
               <label className="block text-sm font-semibold text-foreground mb-2">Product Name *</label>
@@ -153,7 +181,11 @@ export default function InquiryPage() {
                   onChange={(e) => setCurrentProduct(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddProduct())}
                   className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="e.g., Portable Ultrasound Machine"
+                  placeholder={
+                    activeModule === "pharmacy"
+                      ? "e.g., Amoxicillin 500mg Capsules"
+                      : "e.g., Portable Ultrasound Machine"
+                  }
                 />
                 <button
                   type="button"

@@ -1,140 +1,88 @@
 "use client"
 
-import { ArrowRight, ArrowUpRight } from "lucide-react"
+import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
-
-const featuredProducts = [
-  {
-    id: 1,
-    name: "Advanced Ultrasound System",
-    category: "Diagnostic Equipment",
-    image: "/portable-ultrasound-machine.jpg",
-    tag: "Best Seller",
-  },
-  {
-    id: 2,
-    name: "12-Lead ECG Monitor",
-    category: "Patient Monitoring",
-    image: "/ecg-monitor-12-lead.jpg",
-    tag: "New",
-  },
-  {
-    id: 3,
-    name: "Electric Hospital Bed",
-    category: "Furniture",
-    image: "/electric-patient-hospital-bed.jpg",
-    tag: "Popular",
-  },
-  {
-    id: 4,
-    name: "Oxygen Concentrator",
-    category: "Respiratory Care",
-    image: "/oxygen-concentrator-medical.jpg",
-    tag: "In Stock",
-  },
-]
-
-const categories = [
-  "All Products",
-  "Diagnostic",
-  "Monitoring",
-  "Surgical",
-  "Respiratory",
-  "Furniture",
-]
+import { ArrowRight } from "lucide-react"
+import { Button, ProductCard, SectionHeader } from "@/components/design-system"
+import { getDisplayProducts } from "@/lib/catalogue"
+import { getModule } from "@/lib/modules/registry"
+import { useStore } from "@/lib/store"
 
 export function Products() {
-  return (
-    <section className="py-24 bg-white relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
-          <div>
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#0d9488]/10 text-[#0d9488] text-sm font-semibold rounded-full mb-4">
-              <span className="w-1.5 h-1.5 bg-[#0d9488] rounded-full" />
-              Our Catalog
-            </span>
-            <h2 className="text-3xl md:text-5xl font-bold text-[#1a1a1a] mb-4">
-              Featured <span className="text-[#0c7f73]">Equipment</span>
-            </h2>
-            <p className="text-lg text-[#6b7280] max-w-xl">
-              Premium medical devices from globally recognized manufacturers, all ISO and CE certified.
-            </p>
-          </div>
-        </div>
+  const activeModule = useStore((state) => state.activeModule)
+  const products = useStore((state) => state.products)
+  const isHydrated = useStore((state) => state.isHydrated)
+  const likes = useStore((state) => state.likes)
+  const addToCart = useStore((state) => state.addToCart)
+  const toggleLike = useStore((state) => state.toggleLike)
+  const [selectedCategory, setSelectedCategory] = useState("All")
 
-        {/* Category tabs */}
-        <div className="flex flex-wrap gap-2 mb-10">
-          {categories.map((cat, i) => (
+  const moduleInfo = getModule(activeModule)
+  const catalogue = getDisplayProducts(activeModule, products, isHydrated)
+  const categories = ["All", ...Array.from(new Set(catalogue.map((product) => product.category))).sort()]
+  const visible = (selectedCategory === "All" ? catalogue : catalogue.filter((product) => product.category === selectedCategory))
+    .slice()
+    .sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)))
+    .slice(0, 8)
+
+  return (
+    <section className="section-shell py-16 lg:py-20">
+      <SectionHeader
+        eyebrow={moduleInfo.eyebrow}
+        title={
+          <>
+            {moduleInfo.featuredLead} <span className="text-primary">{moduleInfo.featuredAccent}</span>
+          </>
+        }
+        description={moduleInfo.featuredDescription}
+        action={
+          <Button asChild variant="soft" size="touch">
+            <Link href="/products">
+              View all {moduleInfo.productLabel.toLowerCase()}
+              <ArrowRight size={16} />
+            </Link>
+          </Button>
+        }
+      />
+
+      {categories.length > 1 && (
+        <div className="no-scrollbar mb-8 flex gap-2 overflow-x-auto pb-1">
+          {categories.map((category) => (
             <button
-              key={cat}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                i === 0
-                  ? "bg-[#0c1f1d] text-white"
-                  : "bg-[#f5f5f3] text-[#6b7280] hover:bg-[#e5e5e3]"
+              key={category}
+              type="button"
+              onClick={() => setSelectedCategory(category)}
+              aria-pressed={selectedCategory === category}
+              className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
+                selectedCategory === category
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
               }`}
             >
-              {cat}
+              {category === "All" ? "All items" : category}
             </button>
           ))}
         </div>
+      )}
 
-        {/* Products Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product) => (
-            <Link
+      {visible.length > 0 ? (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {visible.map((product) => (
+            <ProductCard
               key={product.id}
-              href={`/products/${product.id}`}
-              className="group relative bg-[#fafaf8] rounded-2xl overflow-hidden border border-[#e5e5e3] hover:border-[#0d9488]/30 hover:shadow-xl transition-all duration-500"
-            >
-              {/* Image */}
-              <div className="relative aspect-square overflow-hidden bg-[#f0f0ee]">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                {/* Tag */}
-                <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1.5 bg-white/90 backdrop-blur-sm text-[#1a1a1a] text-xs font-semibold rounded-full">
-                    {product.tag}
-                  </span>
-                </div>
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-[#0c1f1d]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <span className="px-6 py-3 bg-white text-[#1a1a1a] font-semibold rounded-xl flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                    View Details <ArrowUpRight size={18} />
-                  </span>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-5">
-                <p className="text-xs font-semibold text-[#0d9488] uppercase tracking-wider mb-2">
-                  {product.category}
-                </p>
-                <h3 className="font-bold text-[#1a1a1a] text-lg mb-3 group-hover:text-[#0c7f73] transition-colors line-clamp-1">
-                  {product.name}
-                </h3>
-
-              </div>
-            </Link>
+              product={product}
+              liked={likes.includes(product.id)}
+              onAdd={addToCart}
+              onLike={() => void toggleLike(product.id)}
+              priority={product.id === visible[0]?.id}
+            />
           ))}
         </div>
-
-        {/* View All Button */}
-        <div className="mt-12 text-center">
-          <Link
-            href="/products"
-            className="group inline-flex items-center gap-3 bg-[#0c1f1d] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[#1a3330] transition-all duration-300"
-          >
-            Browse Full Catalog
-            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-      </div>
+      ) : (
+        <p className="surface-card px-6 py-12 text-center text-sm text-muted-foreground">
+          No {moduleInfo.itemLabel} in this category yet.
+        </p>
+      )}
     </section>
   )
 }

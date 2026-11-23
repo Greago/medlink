@@ -1,29 +1,42 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { useStore } from "@/lib/store"
-import type { ProfilePage } from "@/lib/store"
-import { Plus, Trash2, Save, GripVertical, BookOpen, Pencil } from "lucide-react"
+import { useMemo, useState } from "react"
+import { toast } from "sonner"
+import { BookOpen, Pencil, Plus, RotateCcw, Search, Trash2, X } from "lucide-react"
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  Modal,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+  SectionHeader,
+} from "@/components/design-system"
+import { useStore, type ProfilePage } from "@/lib/store"
 
 const defaultPages: ProfilePage[] = [
   {
-    title: "About Medlink Expedites",
+    title: "About Medlink Expedite",
     content:
-      "Medlink Expedites is a global leader in medical equipment supply, dedicated to empowering healthcare facilities with cutting-edge devices and trusted solutions.",
-    highlight: "Serving 150+ countries since 2015",
+      "Medlink Expedite Ventures Limited supplies medical equipment and pharmacy products to healthcare facilities, clinics and practices across Kenya.",
+    highlight: "Serving healthcare providers in Kenya",
   },
   {
     title: "Our Mission",
     content:
-      "To deliver premium, certified medical equipment to healthcare providers worldwide, ensuring rapid deployment, competitive pricing, and unmatched after-sales support.",
-    highlight: "Empowering healthcare, one device at a time",
+      "To make reliable healthcare products easier to source, with clear KSh pricing, responsive support and dependable delivery.",
+    highlight: "Practical support for better care",
   },
   {
     title: "What We Supply",
     content:
-      "From diagnostic imaging systems and patient monitors to hospital beds, surgical instruments, and respiratory care devices, our catalog spans over 500 products across 12 categories.",
-    highlight: "500+ products across 12 categories",
+      "From diagnostic equipment and patient monitors to hospital beds, prescription medicines and everyday medical supplies, our catalogue is organised by division.",
+    highlight: "Medical equipment and pharmacy divisions",
   },
 ]
 
@@ -32,14 +45,31 @@ export default function ProfileManagement() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [formData, setFormData] = useState<ProfilePage>({ title: "", content: "", highlight: "" })
   const [showAdd, setShowAdd] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [query, setQuery] = useState("")
+  const [confirmReset, setConfirmReset] = useState(false)
+  const [deletingIndex, setDeletingIndex] = useState<number | null>(null)
 
   const pages = profilePages.length > 0 ? profilePages : defaultPages
 
-  const handleLoadDefaults = () => {
-    setProfilePages(defaultPages)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase()
+    if (!needle) return pages.map((page, index) => ({ page, index }))
+    return pages
+      .map((page, index) => ({ page, index }))
+      .filter(({ page }) => [page.title, page.content, page.highlight].join(" ").toLowerCase().includes(needle))
+  }, [pages, query])
+
+  const closeForm = () => {
+    setShowAdd(false)
+    setEditingIndex(null)
+    setFormData({ title: "", content: "", highlight: "" })
+  }
+
+  const handleLoadDefaults = async () => {
+    await setProfilePages(defaultPages)
+    setConfirmReset(false)
+    closeForm()
+    toast.success("Default profile pages restored")
   }
 
   const handleEdit = (index: number) => {
@@ -48,198 +78,199 @@ export default function ProfileManagement() {
     setShowAdd(false)
   }
 
-  const handleSaveEdit = () => {
-    if (editingIndex !== null) {
-      if (profilePages.length === 0) {
-        setProfilePages(defaultPages.map((p, i) => (i === editingIndex ? formData : p)))
-      } else {
-        updateProfilePage(editingIndex, formData)
-      }
-      setEditingIndex(null)
-      setFormData({ title: "", content: "", highlight: "" })
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
+  const handleSaveEdit = async () => {
+    if (editingIndex === null) return
+    if (profilePages.length === 0) {
+      await setProfilePages(defaultPages.map((page, index) => (index === editingIndex ? formData : page)))
+    } else {
+      await updateProfilePage(editingIndex, formData)
     }
+    closeForm()
+    toast.success("Profile page updated")
   }
 
-  const handleAddPage = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleAddPage = async (event: React.FormEvent) => {
+    event.preventDefault()
     if (!formData.title || !formData.content) return
     if (profilePages.length === 0) {
-      setProfilePages([...defaultPages, formData])
+      await setProfilePages([...defaultPages, formData])
     } else {
-      addProfilePage(formData)
+      await addProfilePage(formData)
     }
-    setFormData({ title: "", content: "", highlight: "" })
-    setShowAdd(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    closeForm()
+    toast.success("Profile page added")
   }
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async () => {
+    if (deletingIndex === null) return
     if (profilePages.length === 0) {
-      setProfilePages(defaultPages.filter((_, i) => i !== index))
+      await setProfilePages(defaultPages.filter((_, index) => index !== deletingIndex))
     } else {
-      deleteProfilePage(index)
+      await deleteProfilePage(deletingIndex)
     }
+    setDeletingIndex(null)
+    toast.success("Profile page deleted")
   }
+
+  const inputClass =
+    "h-11 w-full rounded-xl border border-input bg-background px-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/25"
 
   return (
-    <div className="p-8 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Company Profile</h1>
-          <p className="text-muted-foreground mt-1">Manage the pages shown in your company profile flipbook</p>
-        </div>
-        <div className="flex gap-3">
-          {saved && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-[#f0fdfa] text-[#115e59] rounded-lg text-sm font-medium border border-[#ccfbf1] animate-fade-in">
-              <Save size={16} />
-              Saved
-            </div>
-          )}
-          <button
-            onClick={handleLoadDefaults}
-            className="px-4 py-2 bg-[#f0fdfa] text-[#115e59] rounded-lg text-sm font-medium border border-[#ccfbf1] hover:bg-[#e6f7f5] transition-colors"
-          >
-            Reset to Defaults
-          </button>
-          <button
-            onClick={() => {
-              setShowAdd(true)
-              setEditingIndex(null)
-              setFormData({ title: "", content: "", highlight: "" })
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-[#0d9488] text-white rounded-lg text-sm font-medium hover:bg-[#0f766e] transition-colors"
-          >
-            <Plus size={16} /> Add Page
-          </button>
-        </div>
-      </div>
+    <div className="space-y-6 p-4 lg:p-7">
+      <SectionHeader
+        eyebrow="Tools"
+        title="Company profile"
+        description="Manage the informational pages shown in the company profile flipbook."
+        action={
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outlineSoft" size="touch" onClick={() => setConfirmReset(true)}>
+              <RotateCcw size={16} /> Reset defaults
+            </Button>
+            <Button
+              variant="primary"
+              size="touch"
+              onClick={() => {
+                setShowAdd(true)
+                setEditingIndex(null)
+                setFormData({ title: "", content: "", highlight: "" })
+              }}
+            >
+              <Plus size={16} /> Add page
+            </Button>
+          </div>
+        }
+      />
 
-      {/* Add / Edit Form */}
       {(showAdd || editingIndex !== null) && (
-        <div className="bg-card rounded-xl border border-border p-6 animate-fade-in">
-          <h3 className="text-lg font-bold text-foreground mb-4">
-            {editingIndex !== null ? "Edit Page" : "Add New Page"}
-          </h3>
+        <Card className="animate-fade-in gap-0 p-5 lg:p-6">
+          <div className="mb-5 flex items-center justify-between gap-3 border-b border-border pb-4">
+            <h3 className="text-lg font-bold">{editingIndex !== null ? "Edit page" : "Add new page"}</h3>
+            <Button variant="ghost" size="icon-sm" onClick={closeForm} aria-label="Close form">
+              <X size={18} />
+            </Button>
+          </div>
           <form
-            onSubmit={editingIndex !== null ? (e) => { e.preventDefault(); handleSaveEdit(); } : handleAddPage}
+            onSubmit={editingIndex !== null ? (event) => { event.preventDefault(); void handleSaveEdit() } : handleAddPage}
             className="space-y-4"
           >
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Page Title</label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold">Page title</span>
               <input
-                type="text"
+                required
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent"
+                onChange={(event) => setFormData({ ...formData, title: event.target.value })}
+                className={inputClass}
                 placeholder="e.g. Our Mission"
-                required
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Content</label>
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold">Content</span>
               <textarea
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                rows={4}
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent resize-none"
-                placeholder="Describe this section of your company profile..."
                 required
+                rows={4}
+                value={formData.content}
+                onChange={(event) => setFormData({ ...formData, content: event.target.value })}
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25"
+                placeholder="Describe this section of your company profile..."
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Highlight Text</label>
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold">Highlight text</span>
               <input
-                type="text"
                 value={formData.highlight}
-                onChange={(e) => setFormData({ ...formData, highlight: e.target.value })}
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent"
-                placeholder="e.g. ISO 13485 Certified"
+                onChange={(event) => setFormData({ ...formData, highlight: event.target.value })}
+                className={inputClass}
+                placeholder="A short supporting line"
               />
-            </div>
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                className="px-6 py-2.5 bg-[#0d9488] text-white rounded-lg font-medium text-sm hover:bg-[#0f766e] transition-colors"
-              >
-                {editingIndex !== null ? "Save Changes" : "Add Page"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowAdd(false)
-                  setEditingIndex(null)
-                  setFormData({ title: "", content: "", highlight: "" })
-                }}
-                className="px-6 py-2.5 bg-muted text-foreground rounded-lg font-medium text-sm hover:bg-muted/80 transition-colors"
-              >
-                Cancel
-              </button>
+            </label>
+            <div className="flex justify-end gap-2 border-t border-border pt-4">
+              <Button type="button" variant="outlineSoft" size="touch" onClick={closeForm}>Cancel</Button>
+              <Button type="submit" variant="primary" size="touch">
+                {editingIndex !== null ? "Save changes" : "Add page"}
+              </Button>
             </div>
           </form>
-        </div>
+        </Card>
       )}
 
-      {/* Pages List */}
-      <div className="space-y-3">
-        {pages.map((page, i) => (
-          <div
-            key={i}
-            className="bg-card rounded-xl border border-border p-6 flex items-start gap-4 hover:shadow-md transition-shadow group"
-          >
-            <div className="mt-1 text-muted-foreground">
-              <GripVertical size={20} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-[#f0fdfa] rounded-lg flex items-center justify-center shrink-0">
-                  <BookOpen size={16} className="text-[#0d9488]" />
+      <Card className="gap-0 p-4 lg:p-5">
+        <div className="relative">
+          <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search profile pages"
+            className="h-11 w-full rounded-xl border border-input bg-background pl-11 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25"
+          />
+        </div>
+      </Card>
+
+      {pages.length === 0 ? (
+        <EmptyState
+          icon={BookOpen}
+          title="No profile pages yet"
+          description="Load the default pages or add your own."
+          action={<Button variant="primary" onClick={() => setConfirmReset(true)}>Load default pages</Button>}
+        />
+      ) : filtered.length === 0 ? (
+        <EmptyState icon={Search} title="No matching pages" description="Try a different search term." action={<Button variant="soft" onClick={() => setQuery("")}>Clear search</Button>} />
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(({ page, index }) => (
+            <Card key={index} className="group gap-0 p-5">
+              <div className="flex items-start gap-4">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <BookOpen size={18} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-bold">{page.title}</h3>
+                    <Badge variant="soft">Page {index + 1}</Badge>
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{page.content}</p>
+                  {page.highlight && <Badge variant="success" className="mt-3">{page.highlight}</Badge>}
                 </div>
-                <h3 className="font-bold text-foreground truncate">{page.title}</h3>
-                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded shrink-0">
-                  Page {i + 1}
-                </span>
+                <div className="flex shrink-0 gap-2">
+                  <Button variant="ghost" size="icon-sm" onClick={() => handleEdit(index)} aria-label={`Edit ${page.title}`}>
+                    <Pencil size={16} />
+                  </Button>
+                  <Button variant="ghost" size="icon-sm" onClick={() => setDeletingIndex(index)} aria-label={`Delete ${page.title}`} className="text-danger">
+                    <Trash2 size={16} />
+                  </Button>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{page.content}</p>
-              {page.highlight && (
-                <span className="inline-block text-xs font-medium text-[#115e59] bg-[#f0fdfa] px-3 py-1 rounded-full border border-[#ccfbf1]">
-                  {page.highlight}
-                </span>
-              )}
-            </div>
-            <div className="flex gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={() => handleEdit(i)}
-                className="p-2 rounded-lg text-muted-foreground hover:bg-[#f0fdfa] hover:text-[#0d9488] transition-colors"
-              >
-                <Pencil size={16} />
-              </button>
-              <button
-                onClick={() => handleDelete(i)}
-                className="p-2 rounded-lg text-muted-foreground hover:bg-red-50 hover:text-red-500 transition-colors"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {pages.length === 0 && (
-        <div className="bg-card rounded-xl border border-border p-12 text-center">
-          <BookOpen size={40} className="mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">No profile pages yet</p>
-          <button
-            onClick={handleLoadDefaults}
-            className="px-6 py-2.5 bg-[#0d9488] text-white rounded-lg font-medium text-sm hover:bg-[#0f766e] transition-colors"
-          >
-            Load Default Pages
-          </button>
+            </Card>
+          ))}
         </div>
       )}
+
+      <Modal open={confirmReset} onOpenChange={setConfirmReset}>
+        <ModalContent className="max-w-sm">
+          <ModalHeader>
+            <ModalTitle>Reset profile pages?</ModalTitle>
+            <ModalDescription>Your current profile pages will be replaced with the default pages.</ModalDescription>
+          </ModalHeader>
+          <ModalFooter>
+            <Button variant="outlineSoft" onClick={() => setConfirmReset(false)}>Cancel</Button>
+            <Button variant="primary" onClick={() => void handleLoadDefaults()}>Reset pages</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal open={deletingIndex !== null} onOpenChange={(open) => !open && setDeletingIndex(null)}>
+        <ModalContent className="max-w-sm">
+          <ModalHeader>
+            <ModalTitle>Delete this page?</ModalTitle>
+            <ModalDescription>
+              {deletingIndex !== null ? `“${pages[deletingIndex]?.title}” will be removed from the profile.` : "This cannot be undone."}
+            </ModalDescription>
+          </ModalHeader>
+          <ModalFooter>
+            <Button variant="outlineSoft" onClick={() => setDeletingIndex(null)}>Cancel</Button>
+            <Button variant="primary" onClick={() => void handleDelete()}>Delete page</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   )
 }

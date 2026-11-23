@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Heart, MessageCircle, Share2, Calendar, User, ArrowLeft, Copy, Check } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 
 const blogPosts: Record<string, any> = {
@@ -234,7 +235,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
         <Navigation />
         <div className="py-20 text-center">
           <h1 className="text-3xl font-bold text-gray-900">Blog post not found</h1>
-          <Link href="/blog" className="text-[#0d9488] hover:underline mt-4 inline-block">
+          <Link href="/blog" className="text-[#0c1f1d] hover:underline mt-4 inline-block">
             Back to blog
           </Link>
         </div>
@@ -270,7 +271,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
       {/* Back Button */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/blog" className="inline-flex items-center gap-2 text-[#0d9488] hover:text-[#0f766e] font-semibold">
+          <Link href="/blog" className="inline-flex items-center gap-2 text-[#0c1f1d] hover:text-[#123b38] font-semibold">
             <ArrowLeft size={18} /> Back to Blog
           </Link>
         </div>
@@ -282,7 +283,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <span className="px-3 py-1 bg-[#0d9488]/10 text-[#0d9488] text-xs font-semibold rounded-full">
+              <span className="px-3 py-1 bg-[#0c1f1d]/10 text-[#0c1f1d] text-xs font-semibold rounded-full">
                 {post.category}
               </span>
             </div>
@@ -303,8 +304,14 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
           </div>
 
           {/* Featured Image */}
-          <div className="mb-8 rounded-2xl overflow-hidden h-96 md:h-[500px]">
-            <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+          <div className="relative mb-8 h-96 overflow-hidden rounded-2xl md:h-[500px]">
+            <Image
+              src={post.image}
+              alt={post.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 900px"
+              className="object-cover"
+            />
           </div>
 
           {/* Content */}
@@ -335,7 +342,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
               <span className="font-semibold text-gray-700">{claps}</span>
             </button>
 
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors text-gray-700">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted transition-colors text-foreground">
               <MessageCircle size={24} className="text-gray-400" />
               <span className="font-semibold">{comments.length}</span>
             </button>
@@ -425,7 +432,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
                       required
                       value={commentForm.name}
                       onChange={(e) => setCommentForm({ ...commentForm, name: e.target.value })}
-                      className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488]"
+                      className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c1f1d]"
                       placeholder="Your name"
                     />
                   </div>
@@ -436,7 +443,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
                       required
                       value={commentForm.email}
                       onChange={(e) => setCommentForm({ ...commentForm, email: e.target.value })}
-                      className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488]"
+                      className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c1f1d]"
                       placeholder="your@email.com"
                     />
                   </div>
@@ -449,14 +456,14 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
                     rows={4}
                     value={commentForm.comment}
                     onChange={(e) => setCommentForm({ ...commentForm, comment: e.target.value })}
-                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] resize-none"
+                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c1f1d] resize-none"
                     placeholder="Share your thoughts..."
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-[#0d9488] text-white rounded-lg font-semibold hover:bg-[#0f766e] transition-colors"
+                  className="px-6 py-2 bg-[#0c1f1d] text-white rounded-lg font-semibold hover:bg-[#123b38] transition-colors"
                 >
                   Post Comment
                 </button>

@@ -1,9 +1,7 @@
 import { Navigation } from "@/components/navigation"
 import { Hero } from "@/components/hero"
+import { BrandStrip, CategoryGrid, ModuleCTA, OfferStrip, TrustBar } from "@/components/home-sections"
 import { Products } from "@/components/products"
-import { Features } from "@/components/features"
-import { CompanyProfile } from "@/components/company-profile"
-import { CTA } from "@/components/cta"
 import { Footer } from "@/components/footer"
 import { WhatsAppButton } from "@/components/whatsapp-button"
 
@@ -12,10 +10,12 @@ export default function Home() {
     <main className="min-h-screen bg-background">
       <Navigation />
       <Hero />
-      <Features />
-      <CompanyProfile />
+      <TrustBar />
+      <CategoryGrid />
       <Products />
-      <CTA />
+      <OfferStrip />
+      <BrandStrip />
+      <ModuleCTA />
       <Footer />
       <WhatsAppButton />
     </main>

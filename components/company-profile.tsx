@@ -58,7 +58,7 @@ export function CompanyProfile() {
       {/* Section on Landing Page */}
       <section className="py-24 bg-[#fafaf8] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#0d9488]/5 rounded-full blur-[150px]" />
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#0c1f1d]/5 rounded-full blur-[150px]" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -75,12 +75,12 @@ export function CompanyProfile() {
                   />
                 </div>
                 <div className="bg-[#0c1f1d] rounded-2xl p-6 text-white">
-                  <div className="text-3xl font-bold text-[#2dd4bf] mb-1">3+</div>
+                  <div className="text-3xl font-bold text-[#18bcaa] mb-1">3+</div>
                   <div className="text-sm text-[#8aa8a5]">Years of Excellence</div>
                 </div>
               </div>
               <div className="space-y-4 pt-8">
-                <div className="bg-[#0d9488] rounded-2xl p-6 text-white">
+                <div className="bg-[#0c1f1d] rounded-2xl p-6 text-white">
                   <div className="text-3xl font-bold mb-1">10+</div>
                   <div className="text-sm text-white/80">Counties Served</div>
                 </div>
@@ -97,8 +97,8 @@ export function CompanyProfile() {
 
             {/* Right side - Content */}
             <div>
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#0d9488]/10 text-[#0d9488] text-sm font-semibold rounded-full mb-6">
-                <span className="w-1.5 h-1.5 bg-[#0d9488] rounded-full" />
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#0c1f1d]/10 text-[#0c1f1d] text-sm font-semibold rounded-full mb-6">
+                <span className="w-1.5 h-1.5 bg-[#0c1f1d] rounded-full" />
                 About Us
               </span>
               
@@ -123,8 +123,8 @@ export function CompanyProfile() {
                   { icon: Target, label: "99.8% Satisfaction" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3 p-4 bg-white rounded-xl border border-[#e5e5e3]">
-                    <div className="w-10 h-10 rounded-lg bg-[#0d9488]/10 flex items-center justify-center">
-                      <item.icon size={20} className="text-[#0d9488]" />
+                    <div className="w-10 h-10 rounded-lg bg-[#0c1f1d]/10 flex items-center justify-center">
+                      <item.icon size={20} className="text-[#0c1f1d]" />
                     </div>
                     <span className="text-sm font-medium text-[#1a1a1a]">{item.label}</span>
                   </div>
@@ -182,7 +182,7 @@ export function CompanyProfile() {
             <div className="p-8 md:p-12 min-h-[360px]">
               <div key={currentPage} className="animate-fade-in">
                 <div className="flex items-center gap-3 mb-6">
-                  <span className="px-3 py-1 bg-[#0d9488]/10 text-[#0d9488] text-xs font-semibold rounded-full">
+                  <span className="px-3 py-1 bg-[#0c1f1d]/10 text-[#0c1f1d] text-xs font-semibold rounded-full">
                     {currentPage + 1} / {defaultPages.length}
                   </span>
                 </div>
@@ -193,7 +193,7 @@ export function CompanyProfile() {
                   {defaultPages[currentPage].content}
                 </p>
                 <div className="inline-block px-5 py-3 bg-[#0c1f1d] rounded-xl">
-                  <span className="text-[#2dd4bf] text-sm font-semibold">
+                  <span className="text-[#18bcaa] text-sm font-semibold">
                     {defaultPages[currentPage].highlight}
                   </span>
                 </div>
@@ -217,7 +217,7 @@ export function CompanyProfile() {
                     onClick={() => setCurrentPage(i)}
                     className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
                       i === currentPage
-                        ? "bg-[#0d9488] w-6"
+                        ? "bg-[#0c1f1d] w-6"
                         : "bg-[#e5e5e3] hover:bg-[#d1d1cf]"
                     }`}
                   />
@@ -227,7 +227,7 @@ export function CompanyProfile() {
               <button
                 onClick={goNext}
                 disabled={currentPage === defaultPages.length - 1}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-[#0d9488] text-white hover:bg-[#0f766e]"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-[#0c1f1d] text-white hover:bg-[#123b38]"
               >
                 Next <ChevronRight size={18} />
               </button>

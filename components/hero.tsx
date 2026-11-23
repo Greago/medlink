@@ -1,176 +1,130 @@
 "use client"
 
-import Link from "next/link"
 import Image from "next/image"
-import {
-  ArrowRight,
-  Play,
-  ShieldCheck,
-  Truck,
-  HeartPulse,
-  CheckCircle2,
-} from "lucide-react"
+import Link from "next/link"
+import { ArrowRight, BadgeCheck, FileText, ShieldCheck, Truck } from "lucide-react"
+import { CatalogueDownload } from "@/components/catalogue-download"
+import { Button } from "@/components/design-system"
+import { getDisplayProducts } from "@/lib/catalogue"
+import { getModule } from "@/lib/modules/registry"
+import { useStore } from "@/lib/store"
 
 export function Hero() {
+  const activeModule = useStore((state) => state.activeModule)
+  const products = useStore((state) => state.products)
+  const isHydrated = useStore((state) => state.isHydrated)
+  const moduleInfo = getModule(activeModule)
+  const catalogue = getDisplayProducts(activeModule, products, isHydrated)
+  const categoryCount = new Set(catalogue.map((product) => product.category)).size
+
+  const highlights = [
+    { icon: BadgeCheck, label: `${catalogue.length} ${moduleInfo.itemLabel} listed` },
+    { icon: ShieldCheck, label: "Clear KSh pricing" },
+    { icon: Truck, label: "Nationwide delivery in Kenya" },
+  ]
+
   return (
-    <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-[#071412]">
-      {/* Background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0b1d1b] via-[#081614] to-[#06100f]" />
+    <section className="relative overflow-hidden bg-primary text-primary-foreground">
+      <div className="grid-pattern pointer-events-none absolute inset-0 opacity-70" />
+      <div className="pointer-events-none absolute -right-32 -top-40 size-[520px] rounded-full bg-accent/15 blur-[120px]" />
+      <div className="pointer-events-none absolute -bottom-48 -left-40 size-[460px] rounded-full bg-chart-2/20 blur-[130px]" />
 
-        {/* Glow Effects */}
-        <div className="absolute top-10 right-0 w-[500px] h-[500px] bg-[#14b8a6]/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 left-10 w-[400px] h-[400px] bg-[#0d9488]/10 rounded-full blur-[100px]" />
+      <div className="section-shell relative grid gap-12 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24">
+        <div className="animate-fade-in">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold tracking-wide">
+            <span className="size-1.5 rounded-full bg-accent" />
+            {moduleInfo.eyebrow}
+          </span>
 
-        {/* Grid Pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)
-            `,
-            backgroundSize: "60px 60px",
-          }}
-        />
-      </div>
+          <h1 className="mt-7 text-4xl font-bold leading-[1.08] text-white sm:text-5xl lg:text-6xl">
+            {moduleInfo.heroHeading[0]}
+            <br />
+            {moduleInfo.heroHeading[1]}
+            <br />
+            <span className="text-accent">{moduleInfo.heroHeading[2]}</span>
+          </h1>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div className="grid lg:grid-cols-2 gap-14 items-center">
-          {/* LEFT CONTENT */}
-          <div>
-            {/* Top Badge */}
-            
+          <p className="mt-6 max-w-xl text-base leading-7 text-primary-foreground/75 sm:text-lg">
+            {moduleInfo.heroDescription}
+          </p>
 
-            {/* Heading */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] text-white mb-6">
-              Reliable Medical
-              <br />
-              Equipment for
-              <br />
-              <span className="bg-gradient-to-r from-[#2dd4bf] to-[#14b8a6] bg-clip-text text-transparent">
-                Hospitals & Clinics
-              </span>
-            </h1>
-
-            {/* Description */}
-            <p className="text-lg leading-relaxed text-[#9fb5b2] max-w-xl mb-8">
-              Medlink Expedite supplies high-quality diagnostic, laboratory,
-              surgical, and patient care equipment across Kenya and East Africa.
-              We help healthcare facilities access trusted medical solutions with
-              fast delivery and dependable support.
-            </p>
-
-            {/* CTA */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <Link
-                href="/inquiry"
-                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#0d9488] px-8 py-4 font-semibold text-white shadow-lg shadow-[#0d9488]/30 transition-all duration-300 hover:bg-[#0f766e]"
-              >
-                Request a Quote
-                <ArrowRight
-                  size={20}
-                  className="transition-transform group-hover:translate-x-1"
-                />
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Button
+              asChild
+              variant="accent"
+              size="pill"
+              className="text-accent-foreground shadow-[var(--shadow-lift)]"
+            >
+              <Link href="/inquiry">
+                <FileText size={18} />
+                Request a quote
+                <ArrowRight size={16} />
               </Link>
-
-              <Link
-                href="/products"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-8 py-4 font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/10"
-              >
-                <Play size={18} className="text-[#2dd4bf]" />
-                Explore Products
+            </Button>
+            <Button
+              asChild
+              variant="outlineSoft"
+              size="pill"
+              className="border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/20"
+            >
+              <Link href="/products">
+                Explore {moduleInfo.productLabel.toLowerCase()}
+                <ArrowRight size={16} />
               </Link>
+            </Button>
+            <CatalogueDownload
+              variant="outlineSoft"
+              size="pill"
+              triggerClassName="border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/20"
+              label="Get PDF catalogue"
+            />
+          </div>
+
+          <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3">
+            {highlights.map((item) => (
+              <div key={item.label} className="flex items-center gap-2 text-sm text-primary-foreground/70">
+                <item.icon size={17} className="text-accent" />
+                {item.label}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative animate-slide-up">
+          <div className="relative overflow-hidden rounded-[32px] border border-white/15 shadow-[var(--shadow-lift)]">
+            <div className="relative aspect-[4/3]">
+              <Image
+                src="/hero.jpg"
+                alt={moduleInfo.heroImageAlt}
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 45vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/85 via-primary/10 to-transparent" />
             </div>
 
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap gap-6">
-              {[
-                {
-                  icon: ShieldCheck,
-                  label: "Quality Assured Equipment",
-                },
-                {
-                  icon: Truck,
-                  label: "Fast Nationwide Delivery",
-                },
-                {
-                  icon: HeartPulse,
-                  label: "Healthcare Focused Support",
-                },
-              ].map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 text-[#9fb5b2]"
-                >
-                  <item.icon size={18} className="text-[#2dd4bf]" />
-                  <span className="text-sm">{item.label}</span>
+            <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/20 bg-card/85 p-5 text-ink backdrop-blur-xl sm:bottom-7 sm:left-7 sm:right-7">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="eyebrow">Live catalogue</p>
+                  <p className="mt-1 text-2xl font-bold">{catalogue.length} items</p>
+                  <p className="text-xs text-muted-foreground">in the {moduleInfo.shortLabel.toLowerCase()} division</p>
                 </div>
-              ))}
+                <div className="text-right">
+                  <p className="text-2xl font-bold">{categoryCount}</p>
+                  <p className="text-xs text-muted-foreground">categories to browse</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* RIGHT CONTENT */}
-          <div className="relative hidden lg:block">
-            {/* Main Image */}
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl shadow-black/50">
-              <div className="relative aspect-[4/3]">
-                <Image
-                  src="/hero.jpg"
-                  alt="Medical Equipment Supplier Kenya"
-                  fill
-                  priority
-                  className="object-cover"
-                />
-
-                <div className="absolute inset-0 bg-gradient-to-t from-[#071412] via-transparent to-transparent" />
-              </div>
-
-              {/* Floating Stats */}
-              <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-xl">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  {[
-                    {
-                      value: "500+",
-                      label: "Medical Products",
-                    },
-                    {
-                      value: "47",
-                      label: "Counties Served",
-                    },
-                    {
-                      value: "1000+",
-                      label: "Healthcare Deliveries",
-                    },
-                  ].map((item, index) => (
-                    <div key={index}>
-                      <div className="text-2xl font-bold text-white">
-                        {item.value}
-                      </div>
-                      <div className="mt-1 text-xs text-[#9fb5b2]">
-                        {item.label}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Floating Approval Badge */}
-            <div className="absolute -top-5 -right-5 rounded-2xl bg-[#0d9488] px-5 py-4 shadow-xl shadow-[#0d9488]/30">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={20} className="text-white" />
-                <span className="text-sm font-semibold text-white">
-                  Trusted Healthcare Partner
-                </span>
-              </div>
-            </div>
+          <div className="absolute -right-3 -top-4 hidden rounded-2xl bg-accent px-5 py-4 text-center text-accent-foreground shadow-[var(--shadow-lift)] sm:block">
+            <p className="text-xs font-semibold uppercase tracking-widest">Pricing</p>
+            <p className="text-lg font-bold">KSh</p>
           </div>
         </div>
       </div>
-
-      {/* Bottom Fade */}
-      {/* <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#fafaf8] to-transparent" /> */}
     </section>
   )
 }

@@ -1,5 +1,6 @@
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
+import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Calendar, User } from "lucide-react"
 
@@ -51,7 +52,7 @@ export default function BlogPage() {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="relative py-20 md:py-32 overflow-hidden bg-gradient-to-br from-[#0a3d3d] via-[#0d4f4f] to-[#115e59]">
+      <section className="relative py-20 md:py-32 overflow-hidden bg-gradient-to-br from-[#0a3d3d] via-[#0d4f4f] to-[#123b38]">
         <div className="absolute inset-0 opacity-10">
           <div
             className="absolute inset-0"
@@ -78,21 +79,23 @@ export default function BlogPage() {
             {blogPosts.map((post, i) => (
               <article
                 key={post.id}
-                className="group relative bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl hover:border-[#0d9488]/30 transition-all duration-500"
+                className="group relative bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl hover:border-[#0c1f1d]/30 transition-all duration-500"
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#0d9488]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#0c1f1d]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
 
                 {/* Image */}
                 <div className="relative overflow-hidden h-56 bg-gradient-to-br from-gray-100 to-gray-50">
-                  <img
+                  <Image
                     src={post.image || "/placeholder.svg"}
                     alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   {/* Category Badge */}
                   <div className="absolute top-4 right-4">
-                    <span className="px-3 py-1 bg-[#0d9488] text-white text-xs font-semibold rounded-full">
+                    <span className="px-3 py-1 bg-[#0c1f1d] text-white text-xs font-semibold rounded-full">
                       {post.category}
                     </span>
                   </div>
@@ -100,7 +103,7 @@ export default function BlogPage() {
 
                 {/* Content */}
                 <div className="p-6 relative z-10">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-[#0d9488] transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-[#0c1f1d] transition-colors">
                     {post.title}
                   </h3>
                   <p className="text-gray-600 text-sm line-clamp-2 mb-4">{post.excerpt}</p>
@@ -108,11 +111,11 @@ export default function BlogPage() {
                   {/* Meta Info */}
                   <div className="flex flex-col gap-3 text-sm text-gray-600 border-t border-gray-100 pt-4 mb-4">
                     <div className="flex items-center gap-2">
-                      <User size={14} className="text-[#0d9488]" />
+                      <User size={14} className="text-[#0c1f1d]" />
                       <span>{post.author}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Calendar size={14} className="text-[#0d9488]" />
+                      <Calendar size={14} className="text-[#0c1f1d]" />
                       <span>{post.date}</span>
                     </div>
                   </div>
@@ -120,7 +123,7 @@ export default function BlogPage() {
                   {/* Read More Link */}
                   <Link
                     href={`/blog/${post.id}`}
-                    className="inline-flex items-center gap-2 text-[#0d9488] font-semibold hover:gap-3 transition-all group/link"
+                    className="inline-flex items-center gap-2 text-[#0c1f1d] font-semibold hover:gap-3 transition-all group/link"
                   >
                     Read More <ArrowRight size={16} className="group-hover/link:translate-x-1 transition-transform" />
                   </Link>
