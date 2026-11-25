@@ -175,6 +175,7 @@ export function Navigation() {
     { href: "/products", label: "Shop" },
     { href: "/inquiry", label: "Quotes" },
     { href: "/careers", label: "Careers" },
+    { href: "/blog", label: "Insights" },
     { href: "/contact", label: "Contact" },
   ]
 

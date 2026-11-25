@@ -24,8 +24,7 @@ export function Hero() {
   ]
 
   return (
-    <section className="relative overflow-hidden bg-primary text-primary-foreground">
-      <div className="grid-pattern pointer-events-none absolute inset-0 opacity-70" />
+    <section className="relative overflow-hidden cool-gradient text-primary-foreground">
       <div className="pointer-events-none absolute -right-32 -top-40 size-[520px] rounded-full bg-accent/15 blur-[120px]" />
       <div className="pointer-events-none absolute -bottom-48 -left-40 size-[460px] rounded-full bg-chart-2/20 blur-[130px]" />
 

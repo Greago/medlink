@@ -217,11 +217,8 @@
     color: var(--primary);
   }
 
-  .grid-pattern {
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
-    background-size: 28px 28px;
+  .cool-gradient {
+    background: linear-gradient(135deg, #061b19 0%, #0a2f2b 42%, #124a43 100%);
   }
 
   /* Dashboard-only colour treatments. Kept local so the rest of the admin stays neutral. */
@@ -233,10 +230,7 @@
   }
 
   .dashboard-hero {
-    background:
-      radial-gradient(circle at 82% 18%, rgba(24, 188, 170, 0.38), transparent 22rem),
-      radial-gradient(circle at 8% 110%, rgba(24, 188, 170, 0.15), transparent 18rem),
-      linear-gradient(135deg, #0c1f1d 0%, #0f2e2a 48%, #123b38 100%);
+    background: linear-gradient(135deg, #061b19 0%, #0a2f2b 42%, #124a43 100%);
     box-shadow: 0 30px 60px -32px rgba(12, 31, 29, 0.7);
   }
 

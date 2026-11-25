@@ -120,8 +120,7 @@ export function ProductsClient() {
     <main className="min-h-screen bg-background">
       <Navigation />
 
-      <section className="relative overflow-hidden bg-primary text-primary-foreground">
-        <div className="grid-pattern pointer-events-none absolute inset-0 opacity-70" />
+      <section className="relative overflow-hidden cool-gradient text-primary-foreground">
         <div className="section-shell relative py-12 lg:py-16">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">

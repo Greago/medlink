@@ -5,6 +5,8 @@ import { getModule, MODULE_IDS } from "@/lib/modules/registry"
 import { DEFAULT_MODULE, type AppModule } from "@/lib/modules/types"
 import { hashPassword } from "@/lib/password"
 import { normalizeModules, normalizePermissions, normalizeRole, type AdminRole } from "@/lib/roles"
+import { BLOG_SCHEMA } from "@/lib/blog-schema"
+import { BLOG_SEED_CATEGORIES, BLOG_SEED_POSTS } from "@/lib/blog-seed"
 import { CAREERS_SCHEMA } from "@/lib/careers-schema"
 import { EXTENDED_SCHEMA } from "@/lib/schema-extensions"
 import type { AccountUser, AdminUser, CartItem, Inquiry, Order, OrderItem, ProfilePage, Quote, QuoteItem } from "@/lib/store"
@@ -45,7 +47,7 @@ export async function withTransaction<T>(operation: (client: PoolClient) => Prom
   }
 }
 
-const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS = {
   whatsappNumber: "+254743325746",
   companyEmail: "info@medlinkexpedite.co.ke",
   companyPhone: "+254 743 325 746",
@@ -336,6 +338,7 @@ export function ensureSchema(): Promise<void> {
       await query(SCHEMA)
       await query(EXTENDED_SCHEMA)
       await query(CAREERS_SCHEMA)
+      await query(BLOG_SCHEMA)
 
       // Seed each module independently. If an admin has already defined
       // categories for a module we leave them alone, so deleted categories
@@ -425,6 +428,42 @@ export function ensureSchema(): Promise<void> {
             `INSERT INTO profile_pages (title, content, highlight, position)
              VALUES ($1, $2, $3, $4)`,
             [page.title, page.content, page.highlight, index]
+          )
+        }
+      }
+
+      // Seed the editorial starter content once. If staff have removed a seed
+      // article we leave the blog alone so it is never resurrected on boot.
+      for (const category of BLOG_SEED_CATEGORIES) {
+        await query(
+          `INSERT INTO blog_categories (id, name, slug, description)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (id) DO NOTHING`,
+          [category.id, category.name, category.slug, category.description]
+        )
+      }
+
+      const blogPostCount = await query("SELECT 1 FROM blog_posts LIMIT 1")
+      if (!blogPostCount.rowCount) {
+        for (const post of BLOG_SEED_POSTS) {
+          await query(
+            `INSERT INTO blog_posts
+               (id, slug, title, excerpt, content, cover_image, author, category_id, status, publish_at, published_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7,
+               (SELECT id FROM blog_categories WHERE slug = $8), $9, $10, $10)
+             ON CONFLICT (id) DO NOTHING`,
+            [
+              post.id,
+              post.slug,
+              post.title,
+              post.excerpt,
+              post.content,
+              post.coverImage,
+              post.author,
+              post.categorySlug,
+              post.status,
+              post.publishAt,
+            ]
           )
         }
       }

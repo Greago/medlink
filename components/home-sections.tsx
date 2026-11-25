@@ -74,7 +74,7 @@ export function CategoryGrid() {
           </Button>
         }
       />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {categories.slice(0, 8).map((category) => (
           <CategoryCard
             key={category.name}
@@ -154,8 +154,7 @@ export function ModuleCTA() {
 
   return (
     <section className="section-shell pb-4 pt-10 lg:pb-8">
-      <div className="relative overflow-hidden rounded-[32px] bg-primary px-6 py-12 text-primary-foreground sm:px-10 lg:px-14 lg:py-16">
-        <div className="grid-pattern pointer-events-none absolute inset-0 opacity-60" />
+      <div className="relative overflow-hidden rounded-[32px] cool-gradient px-6 py-12 text-primary-foreground sm:px-10 lg:px-14 lg:py-16">
         <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">

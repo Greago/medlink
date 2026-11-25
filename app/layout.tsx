@@ -1,7 +1,8 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Geist } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
+import { AnalyticsConsent } from "@/components/analytics-consent"
+import { CookieManager } from "@/components/cookie-manager"
 import { StoreHydration } from "@/components/store-hydration"
 import { ThemeSync } from "@/components/theme-sync"
 import { ModuleChooser } from "@/components/module-chooser"
@@ -60,8 +61,9 @@ export default function RootLayout({
         <StoreHydration />
         {children}
         <ModuleChooser />
+        <CookieManager />
         <Toaster position="top-center" richColors closeButton />
-        <Analytics />
+        <AnalyticsConsent />
       </body>
     </html>
   )

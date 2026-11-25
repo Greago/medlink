@@ -324,7 +324,6 @@ export default function DashboardPage() {
   return (
     <div className="admin-dashboard min-h-screen space-y-7 p-4 lg:p-7">
       <section className="dashboard-hero relative overflow-hidden rounded-[28px] px-6 py-8 text-primary-foreground lg:px-9 lg:py-10">
-        <div className="grid-pattern pointer-events-none absolute inset-0 opacity-70" />
         <div className="pointer-events-none absolute -right-24 -top-32 size-80 rounded-full bg-accent/25 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-40 left-1/4 size-72 rounded-full bg-accent/10 blur-3xl" />
 

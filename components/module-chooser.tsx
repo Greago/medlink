@@ -47,6 +47,7 @@ export function ModuleChooser() {
 
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState<AppModule | null>(null)
+  const [errorModule, setErrorModule] = useState<AppModule | null>(null)
   const firstVisit = isHydrated && !moduleChosen
 
   useEffect(() => {
@@ -66,11 +67,13 @@ export function ModuleChooser() {
   const choose = async (module: AppModule) => {
     if (busy) return
     setBusy(module)
+    setErrorModule(null)
     try {
       await setActiveModule(module)
       setOpen(false)
     } catch (error) {
       console.error("Could not switch module:", error)
+      setErrorModule(module)
     } finally {
       setBusy(null)
     }
@@ -102,6 +105,15 @@ export function ModuleChooser() {
             <span className="h-6 w-px bg-[#e5e7eb]" />
             <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#0c1f1d]">One platform, two divisions</span>
           </div>
+
+          {errorModule && (
+            <div
+              role="alert"
+              className="mb-6 rounded-xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm font-medium text-danger"
+            >
+              Couldn't load {MODULE_REGISTRY[errorModule].label} right now. Please try again.
+            </div>
+          )}
 
           <h2 id="module-chooser-title" className="text-3xl sm:text-4xl font-bold text-[#111827] tracking-tight">
             What brings you to Medlink today?
@@ -161,7 +173,7 @@ export function ModuleChooser() {
           })}
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 px-6 pb-7 text-xs text-[#6b7280]">
+        <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-2 px-6 pb-7 text-xs text-[#6b7280]">
           <span className="inline-flex items-center gap-2">
             <ShieldCheck size={15} className="text-[#0c1f1d]" /> Trusted quality
           </span>
@@ -171,6 +183,13 @@ export function ModuleChooser() {
           <span className="inline-flex items-center gap-2">
             <Check size={15} className="text-[#0c1f1d]" /> One account for both divisions
           </span>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="rounded-lg border border-[#e5e7eb] bg-white px-4 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-[#f3f4f6]"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

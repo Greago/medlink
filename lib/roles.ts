@@ -39,6 +39,7 @@ export const PERMISSIONS = [
   "recruitment.manage",
   "recruitment.email",
   "recruitment.salary",
+  "blog.manage",
 ] as const
 
 export type Permission = (typeof PERMISSIONS)[number]
@@ -78,6 +79,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, Set<Permission>> = {
     "recruitment.manage",
     "recruitment.email",
     "recruitment.salary",
+    "blog.manage",
   ]),
   cashier: new Set<Permission>([
     "pos.access",
@@ -203,6 +205,13 @@ export const CAPABILITY_GROUPS: CapabilityGroup[] = [
       { permission: "recruitment.manage", label: "Manage recruitment", description: "Create jobs, move stages and schedule interviews." },
       { permission: "recruitment.email", label: "Email candidates", description: "Send stage and interview emails." },
       { permission: "recruitment.salary", label: "View salary expectations", description: "See expected salary figures for applicants." },
+    ],
+  },
+  {
+    label: "Content",
+    description: "Editorial articles, categories and scheduled publishing.",
+    capabilities: [
+      { permission: "blog.manage", label: "Manage blog", description: "Write articles, manage categories, schedule posts and moderate comments." },
     ],
   },
 ]

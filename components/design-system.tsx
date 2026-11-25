@@ -135,32 +135,46 @@ export function CategoryCard({
     <Link
       href={href}
       className={cn(
-        "surface-card hover-lift focus-ring group flex min-h-[158px] flex-col justify-between overflow-hidden p-5",
+        "surface-card hover-lift focus-ring group flex min-h-[212px] flex-col overflow-hidden",
         className
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="text-base font-semibold leading-snug text-ink">{name}</h3>
+      <div className="relative h-32 shrink-0 overflow-hidden">
+        <Image
+          src={image || "/placeholder.jpg"}
+          alt=""
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#061b19]/90 via-[#061b19]/45 to-transparent" />
+
+        <span className="absolute left-4 top-4 flex size-9 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-white backdrop-blur-sm">
+          <PackageOpen size={17} />
+        </span>
+
         {typeof count === "number" && (
-          <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
-            {count}
+          <span className="absolute right-4 top-4 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-[#0c1f1d] shadow-sm">
+            {count} {count === 1 ? "item" : "items"}
           </span>
         )}
+
+        <h3 className="absolute bottom-3 left-4 right-4 text-base font-bold leading-snug text-white drop-shadow-sm">
+          {name}
+        </h3>
       </div>
-      <div className="mt-5 flex items-end justify-between gap-3">
+
+      <div className="flex flex-1 items-center justify-between gap-3 px-4 py-4">
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
-          Explore <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+          Explore category
+          <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
         </span>
-        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-surface-soft">
-          <Image
-            src={image || "/placeholder.jpg"}
-            alt=""
-            fill
-            sizes="56px"
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-        </div>
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+          <ArrowRight size={14} />
+        </span>
       </div>
+
+      <div className="h-1 w-full bg-gradient-to-r from-[#18bcaa] to-[#0c1f1d]" />
     </Link>
   )
 }

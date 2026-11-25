@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { toast } from "sonner"
 import { ArrowRight, Check, Loader2, Mail, MapPin, MessageCircle, Phone } from "lucide-react"
+import { CookiePreferencesButton } from "@/components/cookie-preferences-button"
 import { ModuleSwitcher } from "@/components/module-switcher"
 import { getModule } from "@/lib/modules/registry"
 import { useStore } from "@/lib/store"
@@ -118,6 +119,9 @@ export function Footer() {
             <Link href="/inquiry" className="hover:text-accent">Request a quote</Link>
             <Link href="/careers" className="hover:text-accent">Careers</Link>
             <Link href="/contact" className="hover:text-accent">Contact</Link>
+            <Link href="/privacy" className="hover:text-accent">Privacy</Link>
+            <Link href="/cookies" className="hover:text-accent">Cookie policy</Link>
+            <CookiePreferencesButton />
             <span>Payment by arrangement: M-Pesa, bank transfer or card where available</span>
           </div>
         </div>

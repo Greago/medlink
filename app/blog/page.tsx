@@ -1,139 +1,139 @@
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
+import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, Calendar, User } from "lucide-react"
+import { BookOpen, Heart, MessageCircle } from "lucide-react"
+import { BlogListing } from "@/components/blog/blog-listing"
+import { Footer } from "@/components/footer"
+import { Navigation } from "@/components/navigation"
+import { getBlogCategories, getBlogPosts } from "@/lib/blog"
 
-const blogPosts = [
-  {
-    id: 1,
-    title: "Essential Medical Equipment Maintenance Tips",
-    excerpt:
-      "Proper maintenance ensures longevity and reliability of medical equipment. Learn best practices from industry experts.",
-    author: "Dr. Felix",
-    date: "Jan 10, 2026",
-    category: "Maintenance",
-    image: "/medical-equipment-maintenance.png",
-  },
-  {
-    id: 2,
-    title: "Latest Advances in Portable Diagnostic Equipment",
-    excerpt:
-      "Discover how portable diagnostic tools are revolutionizing patient care in remote and resource-limited settings.",
-    author: "Dr. Felix",
-    date: "Jan 8, 2026",
-    category: "Technology",
-    image: "/portable-diagnostic-equipment.jpg",
-  },
-  {
-    id: 3,
-    title: "Choosing the Right Equipment for Your Facility",
-    excerpt:
-      "A comprehensive guide to selecting medical equipment that meets your facility's specific needs and budget.",
-    author: "Emma Rodriguez",
-    date: "Jan 5, 2026",
-    category: "Guide",
-    image: "/hospital-medical-facility-equipment.jpg",
-  },
-  {
-    id: 4,
-    title: "2026 Healthcare Industry Trends",
-    excerpt: "Explore the major trends shaping healthcare delivery and equipment requirements in the coming year.",
-    author: "Dr. Felix",
-    date: "Jan 1, 2024",
-    category: "Industry",
-    image: "/healthcare-trends-2024.jpg",
-  },
-]
+export const metadata: Metadata = {
+  title: "Insights & guides",
+  description:
+    "Practical articles, product guides and industry insights from the Medlink Expedite team for hospitals, clinics and pharmacies.",
+}
 
-export default function BlogPage() {
+export const dynamic = "force-dynamic"
+
+const journalHeroStyle = {
+  backgroundColor: "#f2efe9",
+  backgroundImage: [
+    "radial-gradient(circle at 84% 18%, rgba(17, 24, 39, 0.07), transparent 34%)",
+    "linear-gradient(to right, rgba(17, 24, 39, 0.045) 1px, transparent 1px)",
+    "linear-gradient(to bottom, rgba(17, 24, 39, 0.045) 1px, transparent 1px)",
+  ].join(", "),
+  backgroundSize: "auto, 72px 72px, 72px 72px",
+} as const
+
+export default async function BlogPage() {
+  let posts: Awaited<ReturnType<typeof getBlogPosts>> = []
+  let categories: Awaited<ReturnType<typeof getBlogCategories>> = []
+
+  try {
+    ;[posts, categories] = await Promise.all([getBlogPosts({ publishedOnly: true }), getBlogCategories(true)])
+  } catch {
+    // The page still renders a useful empty state if content is unavailable.
+  }
+
+  const totalClaps = posts.reduce((sum, post) => sum + post.clapCount, 0)
+  const totalComments = posts.reduce((sum, post) => sum + post.commentCount, 0)
+
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-background">
       <Navigation />
 
-      {/* Hero Section */}
-      <section className="relative py-20 md:py-32 overflow-hidden bg-gradient-to-br from-[#0a3d3d] via-[#0d4f4f] to-[#123b38]">
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-            }}
-          />
+      <section className="relative overflow-hidden border-b border-border" style={journalHeroStyle}>
+        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/3 lg:block" aria-hidden="true">
+          <div className="absolute right-[12%] top-1/2 size-72 -translate-y-1/2 rounded-full border border-border/70" />
+          <div className="absolute right-[18%] top-1/2 size-48 -translate-y-1/2 rounded-full border border-border/50" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-            Medical Equipment Insights
-          </h1>
-          <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
-            Expert articles, guides, and industry updates to help you make informed decisions about medical equipment.
-          </p>
-        </div>
-      </section>
 
-      {/* Blog Posts */}
-      <section className="py-20 md:py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            {blogPosts.map((post, i) => (
-              <article
-                key={post.id}
-                className="group relative bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl hover:border-[#0c1f1d]/30 transition-all duration-500"
-                style={{ animationDelay: `${i * 0.1}s` }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#0c1f1d]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
+        <div className="section-shell relative grid gap-10 py-14 md:py-20 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-3">
+              <span className="h-px w-8 bg-foreground" />
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                The Medlink journal
+              </p>
+            </div>
 
-                {/* Image */}
-                <div className="relative overflow-hidden h-56 bg-gradient-to-br from-gray-100 to-gray-50">
-                  <Image
-                    src={post.image || "/placeholder.svg"}
-                    alt={post.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  {/* Category Badge */}
-                  <div className="absolute top-4 right-4">
-                    <span className="px-3 py-1 bg-[#0c1f1d] text-white text-xs font-semibold rounded-full">
-                      {post.category}
-                    </span>
-                  </div>
-                </div>
+            <h1 className="mt-5 text-4xl font-extrabold leading-[1.08] tracking-tight text-foreground md:text-6xl">
+              Equipment insights for better healthcare decisions
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+              Expert articles, buying guides and field-tested advice for the teams keeping hospitals, clinics and
+              pharmacies running.
+            </p>
 
-                {/* Content */}
-                <div className="p-6 relative z-10">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-[#0c1f1d] transition-colors">
-                    {post.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm line-clamp-2 mb-4">{post.excerpt}</p>
+            <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-muted-foreground">
+              <span className="inline-flex items-center gap-2">
+                <BookOpen size={15} className="text-foreground" /> {posts.length} articles
+              </span>
+              <span className="hidden size-1 rounded-full bg-border sm:block" aria-hidden="true" />
+              <span className="inline-flex items-center gap-2">
+                <Heart size={15} className="text-foreground" /> {totalClaps} claps
+              </span>
+              <span className="hidden size-1 rounded-full bg-border sm:block" aria-hidden="true" />
+              <span className="inline-flex items-center gap-2">
+                <MessageCircle size={15} className="text-foreground" /> {totalComments} comments
+              </span>
+            </div>
+          </div>
 
-                  {/* Meta Info */}
-                  <div className="flex flex-col gap-3 text-sm text-gray-600 border-t border-gray-100 pt-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <User size={14} className="text-[#0c1f1d]" />
-                      <span>{post.author}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar size={14} className="text-[#0c1f1d]" />
-                      <span>{post.date}</span>
-                    </div>
-                  </div>
-
-                  {/* Read More Link */}
-                  <Link
-                    href={`/blog/${post.id}`}
-                    className="inline-flex items-center gap-2 text-[#0c1f1d] font-semibold hover:gap-3 transition-all group/link"
-                  >
-                    Read More <ArrowRight size={16} className="group-hover/link:translate-x-1 transition-transform" />
-                  </Link>
-                </div>
-              </article>
-            ))}
+          <div className="hidden items-end gap-7 lg:flex">
+            <div className="border-l-2 border-foreground pl-5">
+              <p className="text-4xl font-extrabold tracking-tight text-foreground">
+                {String(posts.length).padStart(2, "0")}
+              </p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                Published notes
+              </p>
+            </div>
+            <div className="border-l border-border pl-5">
+              <p className="text-4xl font-extrabold tracking-tight text-foreground">
+                {String(totalClaps).padStart(2, "0")}
+              </p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                Claps received
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
+      {posts[0] && (
+        <section className="border-b border-border bg-background">
+          <div className="section-shell py-8">
+            <Link
+              href={`/blog/${posts[0].slug}`}
+              className="group grid overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition hover:border-foreground/20 hover:shadow-[var(--shadow-lift)] focus-ring lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]"
+            >
+              <div className="relative min-h-[240px] overflow-hidden bg-surface-soft">
+                <Image
+                  src={posts[0].coverImage || "/placeholder.jpg"}
+                  alt=""
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 55vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+              <div className="flex flex-col justify-center p-6 md:p-8">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                  Latest from the desk
+                </p>
+                <h2 className="mt-3 text-2xl font-bold leading-snug tracking-tight md:text-3xl">{posts[0].title}</h2>
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-muted-foreground">{posts[0].excerpt}</p>
+                <span className="mt-5 inline-flex items-center gap-2 self-start text-xs font-bold text-foreground group-hover:gap-3">
+                  Read the latest article <span aria-hidden="true">→</span>
+                </span>
+              </div>
+            </Link>
+          </div>
+        </section>
+      )}
+
+      <BlogListing posts={posts} categories={categories} featuredSlug={posts[0]?.slug} />
       <Footer />
     </main>
   )

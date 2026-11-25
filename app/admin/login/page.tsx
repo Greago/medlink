@@ -69,13 +69,7 @@ export default function AdminLogin() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#081614] text-white">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(12,31,29,0.28),transparent_42%),radial-gradient(circle_at_88%_82%,rgba(45,212,191,0.16),transparent_38%)]" />
-        <div className="absolute inset-0 opacity-[0.07] [background-image:radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:22px_22px]" />
-        <div className="absolute -left-28 top-1/4 h-80 w-80 rounded-full bg-[#0c1f1d]/20 blur-3xl" />
-        <div className="absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-[#18bcaa]/10 blur-3xl" />
-      </div>
+    <main className="relative min-h-screen overflow-hidden cool-gradient text-white">
 
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-3 sm:px-8 lg:px-10">
         <header className="flex items-center justify-between gap-4">

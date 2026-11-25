@@ -507,9 +507,16 @@ export const useStore = create<Store>((set, get) => ({
       body: JSON.stringify({ module }),
     })
 
-    // Reload module-scoped products, cart and likes from Postgres.
-    const state = await apiRequest<ServerState>("/api/state")
-    get().hydrate(state)
+    // Reload module-scoped products, cart and likes from Postgres. This is
+    // best-effort: the user's choice of module is already saved by the
+    // cookie above, so the switch completes even when the reload fails.
+    try {
+      const state = await apiRequest<ServerState>("/api/state")
+      get().hydrate(state)
+    } catch {
+      set({ activeModule: module, moduleChosen: true })
+      return
+    }
     set({ moduleChosen: true })
 
     if (get().currentUser) {

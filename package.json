@@ -7,7 +7,7 @@
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start",
-    "test": "tsx --test tests/rich-text.test.ts tests/careers-helpers.test.ts"
+    "test": "tsx --test tests/rich-text.test.ts tests/careers-helpers.test.ts tests/cookie-consent.test.ts tests/blog.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

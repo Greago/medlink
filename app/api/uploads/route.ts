@@ -5,13 +5,13 @@ import { saveProductImage } from "@/lib/db"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"]
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"]
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024
 
 export async function POST(request: Request) {
   try {
     await requireAdmin(request, {
-      permissions: ["products.manage", "agents.manage", "customers.manage", "pos.sell", "recruitment.manage"],
+      permissions: ["products.manage", "agents.manage", "customers.manage", "pos.sell", "recruitment.manage", "blog.manage"],
       scopeModule: true,
     })
 
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: "Only JPG and PNG images are supported." }, { status: 400 })
+      return NextResponse.json({ error: "Only JPG, PNG and WebP images are supported." }, { status: 400 })
     }
 
     if (file.size > MAX_IMAGE_BYTES) {

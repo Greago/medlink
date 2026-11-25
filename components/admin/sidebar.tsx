@@ -16,6 +16,7 @@ import {
   LogOut,
   Mail,
   MessageSquare,
+  Newspaper,
   Package,
   Pill,
   ReceiptText,
@@ -100,6 +101,12 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/admin/products", label: "Products", icon: Package },
       { href: "/admin/categories", label: "Categories", icon: Tags },
+    ],
+  },
+  {
+    label: "Content",
+    items: [
+      { href: "/admin/blog", label: "Blog & articles", icon: Newspaper, permission: "blog.manage" },
     ],
   },
   {

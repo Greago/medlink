@@ -9,15 +9,13 @@ export function StoreHydration() {
     let cancelled = false
 
     fetch("/api/state")
-      .then((response) => {
-        if (!response.ok) throw new Error("Could not load application data.")
-        return response.json() as Promise<ServerState>
-      })
+      .then(async (response) => (response.ok ? ((await response.json()) as ServerState) : null))
       .then((state) => {
-        if (!cancelled) useStore.getState().hydrate(state)
+        if (cancelled) return
+        if (state) useStore.getState().hydrate(state)
+        else useStore.setState({ isHydrated: true })
       })
-      .catch((error) => {
-        console.error(error)
+      .catch(() => {
         if (!cancelled) useStore.setState({ isHydrated: true })
       })
 

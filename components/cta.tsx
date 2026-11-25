@@ -3,19 +3,11 @@ import { ArrowRight, Phone, Mail, MapPin } from "lucide-react"
 
 export function CTA() {
   return (
-    <section className="py-24 bg-gradient-to-br from-[#0c1f1d] via-[#0a1816] to-[#071412] relative overflow-hidden">
+    <section className="py-24 cool-gradient relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#0c1f1d]/10 rounded-full blur-[150px]" />
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#2d6e67]/8 rounded-full blur-[120px]" />
-        {/* Grid pattern */}
-        <div 
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

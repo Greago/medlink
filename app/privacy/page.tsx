@@ -20,6 +20,13 @@ export default function PrivacyPage() {
             We process personal data in accordance with the Kenya Data Protection Act, 2019. This page explains how we
             collect, use and protect information from customers, website visitors and job applicants.
           </p>
+          <h2>Cookies</h2>
+          <p>
+            We use strictly necessary cookies to keep the store secure and usable, and optional cookies only with your
+            permission to remember your preferences and understand site usage. We do not use advertising cookies. You
+            can review or change your choices at any time from the footer or our{" "}
+            <a href="/cookies">cookie policy</a>.
+          </p>
           <h2>Applicant data</h2>
           <ul>
             <li>We collect the information you submit with your application (name, contact details, experience, CV and screening answers) solely to manage recruitment.</li>
